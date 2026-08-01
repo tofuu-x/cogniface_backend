@@ -1,16 +1,16 @@
 {
   "name": "capstone-project-backend",
   "version": "1.0.0",
-  "main": "dist/index.js",
+  "main": "dist/app/express.js",
   "scripts": {
     "build": "tsc",
-    "start": "node ./dist/index.js",
-    "dev": "tsx watch ./src/app/server.ts"
+    "start": "node ./dist/app/express.js",
+    "dev": "tsx watch ./src/app/express.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "module",
   "description": "",
   "dependencies": {
     "@prisma/adapter-pg": "^7.9.1",
