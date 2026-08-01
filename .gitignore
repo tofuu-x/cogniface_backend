@@ -1,0 +1,29 @@
+### Dependencies
+node_modules/
+
+### Build output
+dist/
+
+### Environment files
+.env
+.env.*
+
+### Logs
+*.log
+
+### Prisma
+# Generated Prisma Client is typically created inside node_modules, which is already ignored.
+# Keep migrations and schema files committed.
+.prisma/
+
+### OS files
+.DS_Store
+Thumbs.db
+
+### Editor / IDE
+.vscode/
+
+
+/src/generated/prisma
+
+/src/generated/prisma
