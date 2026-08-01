@@ -1,10 +1,11 @@
 import express from "express";
 import dotenv from "dotenv";
+import env from "../config/env";
 
 dotenv.config();
 
 const app = express();
-const port = Number(process.env.PORT ?? 3000);
+const port = env.port;
 
 app.use(express.json());
 

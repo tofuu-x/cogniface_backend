@@ -6,3 +6,90 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+//ENUMS
+enum AccountStatus {
+  PENDING_ACTIVATION
+  ACTIVE
+  INACTIVE
+}
+
+enum AdminRole{
+  ADMIN 
+  SUPER_ADMIN
+}
+
+enum Department{
+  // Engineering & Technology
+  COMPUTER_SCIENCE
+  INFORMATION_TECHNOLOGY
+  SOFTWARE_ENGINEERING
+  ENGINEERING
+  ARCHITECTURE
+
+// Business & Economics
+  BUSINESS_ADMINISTRATION
+  ACCOUNTING
+  FINANCE
+  ECONOMICS
+  MARKETING
+  HUMAN_RESOURCE_MANAGEMENT
+
+  // Health & Medicine
+  MEDICINE
+  NURSING
+  PHARMACY
+  DENTISTRY
+  PUBLIC_HEALTH
+}
+
+
+
+//TABLES
+
+model Admin {
+  id            String        @id @default(uuid())
+  firstName     String
+  lastName      String  
+  email         String        @unique 
+  password      String
+  phoneNumber   String        @unique
+  dateOfBirth   DateTime      @db.Date
+  role          AdminRole     @default(ADMIN)
+  accountStatus AccountStatus @default(PENDING_ACTIVATION)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt 
+}
+
+//Student
+model Student{
+  id              String          @id @default(uuid())
+  studentId       String          @unique
+  firstName       String
+  lastName        String
+  email           String          @unique
+  password        String
+  phoneNumber     String          @unique
+  dateOfBirth     DateTime        @db.Date    
+  enrollmentYear  Int
+  accountStatus   AccountStatus   @default(PENDING_ACTIVATION)
+  faceRegistered  Boolean         @default(false)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt 
+}
+
+//Lecturer
+model Lecturer {
+  id            String        @id @default(uuid())
+  lecturerId    String        @unique  
+  firstName     String
+  lastName      String
+  email         String        @unique
+  password      String
+  phoneNumber   String        @unique
+  dateOfBirth   DateTime      @db.Date    
+  department    Department
+  accountStatus AccountStatus @default(PENDING_ACTIVATION)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
