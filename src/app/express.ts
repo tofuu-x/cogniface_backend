@@ -1,35 +1,16 @@
-import app from "./server.js";
-import env from "../config/env.js"
-import { connectDB , disconnectDB } from "../db/connect.js";
-
-await connectDB();
-
-const server = app.listen(env.port, ()=>{
-  console.log(`Express app is running on PORT ${env.port}`);
-});
+import express from "express";
+import prisma from "../db/prisma.client.js";
 
 
-//Handle unhandled promise rejections (e.g, database connection errors)
-process.on("unhandledRejection", (err) => {
-  console.error("Unhandled Rejection:", err);
-  server.close(async() =>{
-    await disconnectDB();
-    process.exit(1);
-  });
-});
+const app = express();
 
-//Handle uncaught exceptions
-process.on("uncaughtException", async (err) =>{
-  console.error("Uncaught Exception:", err);
-  await disconnectDB();
-  process.exit(1);
-});
+app.use(express.json());
 
-//Graceful shutdown
-process.on("SIGTERM", async()=>{
-  console.log("SIGTERM received, shutting down gracefully");
-  server.close(async()=>{
-    await disconnectDB();
-    process.exit(0);
-  });
-});
+
+
+app.get("/",async (req,res)=> {
+  let admin = await prisma.admin.findMany();
+  res.send(admin)
+})
+
+export default app;
