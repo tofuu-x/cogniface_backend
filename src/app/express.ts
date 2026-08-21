@@ -1,16 +1,22 @@
 import express from "express";
-import prisma from "../db/prisma.client.js";
+import authRoutes from "../modules/auth/auth.routes.js"
+import { errorMiddleware } from "../middlewares/error.middleware.js";
 
 
 const app = express();
 
 app.use(express.json());
 
+//Authentication
+app.use("/api/auth",authRoutes);
 
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: "Route not found",
+  });
+});
 
-app.get("/",async (req,res)=> {
-  let admin = await prisma.admin.findMany();
-  res.send(admin)
-})
+app.use(errorMiddleware);
 
 export default app;

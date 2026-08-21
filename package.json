@@ -1,11 +1,11 @@
 {
   "name": "capstone-project-backend",
   "version": "1.0.0",
-  "main": "dist/app/express.js",
+  "main": "dist/app/server.js",
   "scripts": {
     "build": "tsc",
-    "start": "node ./dist/app/express.js",
-    "dev": "tsx watch ./src/app/express.ts"
+    "start": "node ./dist/app/server.js",
+    "dev": "tsx watch ./src/app/server.ts"
   },
   "keywords": [],
   "author": "",

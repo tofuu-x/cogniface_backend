@@ -1,4 +1,4 @@
-import app from "./server.js";
+import app from "./express.js";
 import env from "../config/env.js"
 import { connectDB , disconnectDB } from "../db/connect.js";
 
