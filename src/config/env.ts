@@ -13,7 +13,9 @@ const required = (key : string) : string => {
 const env = {
   port : required("PORT"),
   database_url : required("DEV_DATABASE_URL"),
-  node_env : required("NODE_ENV")
+  node_env : required("NODE_ENV"),
+  salt_rounds : required("SALT_ROUNDS"),
+  jwt_secret : required("JWT_SECRET")
 }
 
 export default env;
