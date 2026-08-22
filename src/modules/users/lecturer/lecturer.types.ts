@@ -21,3 +21,12 @@ export interface CreateLecturerResponse {
   accountStatus: AccountStatus;
   createdAt: Date;
 }
+
+export interface UpdateLecturerRequest {
+  firstName? : string;
+  lastName? : string;
+  email? : string;
+  phoneNumber? : string;
+  dateOfBirth? : string;
+  department? : Department
+}

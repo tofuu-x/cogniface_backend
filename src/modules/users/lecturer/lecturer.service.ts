@@ -8,7 +8,8 @@ import { AccountStatus } from "../../../generated/prisma/enums.js";
 
 import type {
   CreateLecturerRequest,
-  CreateLecturerResponse
+  CreateLecturerResponse,
+  UpdateLecturerRequest
 } from "./lecturer.types.js";
 
 
@@ -201,4 +202,88 @@ export const createLecturerService = async (
   return {
     ...lecturer,
   };
+};
+
+export const updateLecturerService = async (
+  lecturerId: string,
+  data: UpdateLecturerRequest
+) => {
+  const existingLecturer = await prisma.lecturer.findUnique({
+    where: {
+      lecturerId,
+    },
+  });
+
+  if (!existingLecturer) {
+    throw new AppError("Lecturer not found", 404);
+  }
+
+  const firstName = data.firstName?.trim();
+  const lastName = data.lastName?.trim();
+  const email = data.email?.trim().toLowerCase();
+  const phoneNumber = data.phoneNumber?.trim();
+  const department = data.department;
+  const dateOfBirth = data.dateOfBirth
+    ? new Date(data.dateOfBirth)
+    : undefined;
+
+  if (dateOfBirth && Number.isNaN(dateOfBirth.getTime())) {
+    throw new AppError("Invalid date of birth", 400);
+  }
+
+  if (dateOfBirth && dateOfBirth > new Date()) {
+    throw new AppError("Date of birth cannot be in the future", 400);
+  }
+
+  if (email && email !== existingLecturer.email) {
+    const [admin, student, lecturer] = await Promise.all([
+      prisma.admin.findUnique({ where: { email } }),
+      prisma.student.findUnique({ where: { email } }),
+      prisma.lecturer.findUnique({ where: { email } }),
+    ]);
+
+    if ((admin && admin.email === email) || (student && student.email === email) || (lecturer && lecturer.email === email && lecturer.lecturerId !== lecturerId)) {
+      throw new AppError("A user with this email already exists", 409);
+    }
+  }
+
+  if (phoneNumber && phoneNumber !== existingLecturer.phoneNumber) {
+    const [admin, student, lecturer] = await Promise.all([
+      prisma.admin.findUnique({ where: { phoneNumber } }),
+      prisma.student.findUnique({ where: { phoneNumber } }),
+      prisma.lecturer.findUnique({ where: { phoneNumber } }),
+    ]);
+
+    if ((admin && admin.phoneNumber === phoneNumber) || (student && student.phoneNumber === phoneNumber) || (lecturer && lecturer.phoneNumber === phoneNumber && lecturer.lecturerId !== lecturerId)) {
+      throw new AppError("A user with this phone number already exists", 409);
+    }
+  }
+
+  const lecturer = await prisma.lecturer.update({
+    where: {
+      lecturerId,
+    },
+    data: {
+      firstName: firstName ?? undefined,
+      lastName: lastName ?? undefined,
+      email: email ?? undefined,
+      phoneNumber: phoneNumber ?? undefined,
+      dateOfBirth: dateOfBirth ?? undefined,
+      department: department ?? undefined,
+    },
+    select: {
+      id: true,
+      lecturerId: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      phoneNumber: true,
+      dateOfBirth: true,
+      department: true,
+      accountStatus: true,
+      createdAt: true,
+    },
+  });
+
+  return lecturer;
 };
