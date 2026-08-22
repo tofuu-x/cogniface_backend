@@ -9,8 +9,12 @@ import { AccountStatus } from "../../../generated/prisma/enums.js";
 import type {
   CreateLecturerRequest,
   CreateLecturerResponse,
+  GetLecturerResponse,
+  LecturerReader,
   UpdateLecturerRequest
 } from "./lecturer.types.js";
+
+
 
 
 const generateLecturerId = async () : Promise<string> => {
@@ -204,6 +208,59 @@ export const createLecturerService = async (
   };
 };
 
+export const getLecturerService = async (
+  lecturerId: string,
+  reader: LecturerReader
+): Promise<GetLecturerResponse> => {
+  const lecturer = await prisma.lecturer.findUnique({
+    where: {
+      lecturerId,
+    },
+
+    select: {
+      id: true,
+      lecturerId: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      phoneNumber: true,
+      dateOfBirth: true,
+      department: true,
+      accountStatus: true,
+      createdAt: true,
+    },
+  });
+
+  if (!lecturer) {
+    throw new AppError("Lecturer not found", 404);
+  }
+
+  // Lecturer can only view their own private profile
+  if (
+    reader.role === "LECTURER" &&
+    lecturer.id !== reader.userId
+  ) {
+    throw new AppError(
+      "You are not authorized to access this resource",
+      403
+    );
+  }
+
+  // Students only receive public lecturer information
+  if (reader.role === "STUDENT") {
+    return {
+      lecturerId: lecturer.lecturerId,
+      firstName: lecturer.firstName,
+      lastName: lecturer.lastName,
+      email: lecturer.email,
+      department: lecturer.department,
+    };
+  }
+
+  // Admin, Super Admin, or the lecturer themselves
+  return lecturer;
+};
+
 export const updateLecturerService = async (
   lecturerId: string,
   data: UpdateLecturerRequest
@@ -286,4 +343,23 @@ export const updateLecturerService = async (
   });
 
   return lecturer;
+};
+
+export const getAllLecturersService = async () => {
+  const lecturers = await prisma.lecturer.findMany({
+    select: {
+      lecturerId: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      department: true,
+      accountStatus: true,
+    },
+
+    orderBy: {
+      firstName: "asc",
+    },
+  });
+
+  return lecturers;
 };
