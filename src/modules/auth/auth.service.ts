@@ -7,14 +7,18 @@ import { comparePassword, generateJWT } from "../../utils/auth.js";
 export const loginUser = async (data : LoginRequest) : Promise<LoginResponse> => {
 
   let user : any;
+  let role: LoginRequest["role"];
 
   //Check if the user exists and their status == Active
   if (data.role == "ADMIN" || data.role == "SUPER_ADMIN"){
     user = await prisma.admin.findUnique({where : {email : data.email}});
+    role = data.role;
   } else if (data.role == "STUDENT"){
     user = await prisma.student.findUnique({where : {email : data.email}});
+    role = "STUDENT";
   } else {
     user = await prisma.lecturer.findUnique({where : {email : data.email}})
+    role = "LECTURER";
   }
 
   
@@ -34,14 +38,14 @@ export const loginUser = async (data : LoginRequest) : Promise<LoginResponse> =>
     throw new AppError("Account not active. Contact Admin",403)
   }
 
-  const token = generateJWT(user.id, user.role);
+  const token = generateJWT(user.id, role);
   
   return ({
     token,
     userId: user.id,
     firstName : user.firstName,
     email : user.email,
-    role: user.role
+    role
   })
 
 }

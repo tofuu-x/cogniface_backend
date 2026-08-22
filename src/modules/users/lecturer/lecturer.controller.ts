@@ -1,11 +1,25 @@
 import type { Request, Response } from "express";
 
-export const createLecturer = (
-  req : Request,
-  res : Response
+import { createLecturerService } from "./lecturer.service.js";
+
+import type {
+  CreateLecturerRequest,
+} from "./lecturer.types.js";
+
+
+export const createLecturer = async (
+  req: Request<{}, {}, CreateLecturerRequest>,
+  res: Response
 ) => {
-  return res.status(200).json({
-    message : "Authorized",
-    user: req.user
-  })
-}
+  const lecturer = await createLecturerService(
+    req.body
+  );
+
+  return res.status(201).json({
+    success: true,
+
+    message: "Lecturer created successfully",
+
+    lecturer,
+  });
+};

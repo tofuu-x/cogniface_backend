@@ -14,7 +14,15 @@ const env = {
   port : required("PORT"),
   database_url : required("DEV_DATABASE_URL"),
   node_env : required("NODE_ENV"),
-  salt_rounds : required("SALT_ROUNDS"),
+  salt_rounds : (() => {
+    const value = Number(required("SALT_ROUNDS"));
+
+    if (!Number.isInteger(value) || value < 4) {
+      throw new Error("SALT_ROUNDS must be an integer bcrypt cost value");
+    }
+
+    return value;
+  })(),
   jwt_secret : required("JWT_SECRET")
 }
 

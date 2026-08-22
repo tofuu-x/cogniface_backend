@@ -14,7 +14,7 @@ export const comparePassword = async (
 export const hashPassword = async(
   password: string
 ): Promise<string> => {
-  return bcrypt.hash(password,env.salt_rounds);
+  return await bcrypt.hash(password, env.salt_rounds);
 };
 
 //Generate JWT token
@@ -28,4 +28,3 @@ export const generateJWT = (
     {expiresIn: "1d"}
   );
 };
-
