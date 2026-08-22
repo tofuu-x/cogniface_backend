@@ -7,24 +7,27 @@ import { comparePassword, generateJWT } from "../../utils/auth.js";
 export const loginUser = async (data : LoginRequest) : Promise<LoginResponse> => {
 
   let user : any;
-  let role: LoginRequest["role"];
 
   //Check if the user exists and their status == Active
   if (data.role == "ADMIN" || data.role == "SUPER_ADMIN"){
     user = await prisma.admin.findUnique({where : {email : data.email}});
-    role = data.role;
   } else if (data.role == "STUDENT"){
     user = await prisma.student.findUnique({where : {email : data.email}});
-    role = "STUDENT";
   } else {
     user = await prisma.lecturer.findUnique({where : {email : data.email}})
-    role = "LECTURER";
   }
 
   
   if (!user){
     throw new AppError("The email or password is Incorrect",401);
   }
+
+// For Admin/Super Admin, trust the role stored in the database.
+  // For Student/Lecturer, the selected table determines the role.
+  const role =
+    data.role === "ADMIN" || data.role === "SUPER_ADMIN"
+      ? user.role
+      : data.role;
 
   const passwordMatches = await comparePassword(data.password, user.password);
 
@@ -45,7 +48,7 @@ export const loginUser = async (data : LoginRequest) : Promise<LoginResponse> =>
     userId: user.id,
     firstName : user.firstName,
     email : user.email,
-    role
+    role: user.role
   })
 
 }
