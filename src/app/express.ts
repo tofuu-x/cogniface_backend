@@ -4,6 +4,7 @@ import { errorMiddleware } from "../middlewares/error.middleware.js";
 import lecturerRoutes from "../modules/users/lecturer/lecturer.routes.js";
 import studentRoutes from "../modules/users/student/student.routes.js";
 import adminRoutes from "../modules/users/admin/admin.routes.js";
+import majorRoutes from "../modules/major/major.routes.js";
 
 
 const app = express();
@@ -21,6 +22,9 @@ app.use("/api/lecturer",lecturerRoutes);
 
 //Student Routes
 app.use("/api/student",studentRoutes)
+
+//Major Routes
+app.use("/api/major",majorRoutes);
 
 app.use((req, res) => {
   res.status(404).json({
