@@ -44,6 +44,12 @@ enum Department{
   PUBLIC_HEALTH
 }
 
+enum DegreeType {
+  BACHELORS
+  MASTERS
+  PHD
+}
+
 
 
 //TABLES
@@ -73,6 +79,10 @@ model Student{
   phoneNumber     String          @unique
   dateOfBirth     DateTime        @db.Date    
   enrollmentYear  Int
+
+  majorId String
+  major Major @relation(fields: [majorId], references: [id])
+
   accountStatus   AccountStatus   @default(PENDING_ACTIVATION)
   faceRegistered  Boolean         @default(false)
   createdAt       DateTime        @default(now())
@@ -93,4 +103,18 @@ model Lecturer {
   accountStatus AccountStatus @default(PENDING_ACTIVATION)
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
+}
+
+
+//Major
+model Major{
+  id        String    @id @default(uuid())
+  majorCode   String  @unique
+  majorName     String
+  department    Department
+  degreeType    DegreeType
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  students  Student[]    
 }

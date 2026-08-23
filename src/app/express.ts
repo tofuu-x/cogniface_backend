@@ -2,6 +2,7 @@ import express from "express";
 import authRoutes from "../modules/auth/auth.routes.js"
 import { errorMiddleware } from "../middlewares/error.middleware.js";
 import lecturerRoutes from "../modules/users/lecturer/lecturer.routes.js";
+import studentRoutes from "../modules/users/student/student.routes.js";
 
 
 const app = express();
@@ -13,6 +14,9 @@ app.use("/api/auth",authRoutes);
 
 //Lecturer Routes
 app.use("/api/lecturer",lecturerRoutes);
+
+//Student Routes
+app.use("/api/student",studentRoutes)
 
 app.use((req, res) => {
   res.status(404).json({
