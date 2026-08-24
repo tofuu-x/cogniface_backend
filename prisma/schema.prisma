@@ -50,6 +50,12 @@ enum DegreeType {
   PHD
 }
 
+enum CourseStatus{
+  ACTIVE
+  ARCHIVED
+}
+
+
 
 
 //TABLES
@@ -116,5 +122,37 @@ model Major{
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  students  Student[]    
+  students  Student[] 
+  courses Course[]   
 }
+
+model Course {
+  id           String       @id @default(uuid())
+  courseCode   String       @unique
+  courseName   String
+  description  String?
+  creditPoints Int
+  status       CourseStatus @default(ACTIVE)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  majors Major[]
+
+  prerequisites CoursePrerequisite[] @relation("CoursePrerequisites")
+  requiredFor   CoursePrerequisite[] @relation("PrerequisiteFor")
+}
+
+model CoursePrerequisite{
+  id    String  @id @default(uuid())
+
+  courseId    String
+  prerequisiteCourseId  String
+
+  course Course @relation("CoursePrerequisites", fields:[courseId], references: [id], onDelete: Cascade)
+
+  prerequisiteCourse Course @relation("PrerequisiteFor", fields: [prerequisiteCourseId], references: [id], onDelete: Cascade)
+
+  @@unique([courseId, prerequisiteCourseId])
+}
+
