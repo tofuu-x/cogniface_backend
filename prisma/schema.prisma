@@ -55,6 +55,22 @@ enum CourseStatus{
   ARCHIVED
 }
 
+enum Semester {
+  SEMESTER_1
+  SEMESTER_2
+}
+
+enum DayOfWeek {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
+
 
 
 
@@ -109,6 +125,8 @@ model Lecturer {
   accountStatus AccountStatus @default(PENDING_ACTIVATION)
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
+
+  classes Class[]
 }
 
 
@@ -138,6 +156,7 @@ model Course {
   updatedAt DateTime @updatedAt
 
   majors Major[]
+  classes Class[]
 
   prerequisites CoursePrerequisite[] @relation("CoursePrerequisites")
   requiredFor   CoursePrerequisite[] @relation("PrerequisiteFor")
@@ -154,5 +173,43 @@ model CoursePrerequisite{
   prerequisiteCourse Course @relation("PrerequisiteFor", fields: [prerequisiteCourseId], references: [id], onDelete: Cascade)
 
   @@unique([courseId, prerequisiteCourseId])
+}
+
+model AcademicTerm {
+  id        String   @id @default(uuid())
+  semester  Semester
+  year      Int
+  startDate DateTime @db.Date
+  endDate   DateTime @db.Date
+
+  classes   Class[]
+
+  @@unique([semester, year])
+}
+
+model Class {
+  id             String       @id @default(uuid())
+  classCode      String
+
+  courseId       String
+  course         Course       @relation(fields: [courseId], references: [id])
+
+  lecturerId     String
+  lecturer       Lecturer     @relation(fields: [lecturerId], references: [id])
+
+  academicTermId String
+  academicTerm   AcademicTerm @relation(fields: [academicTermId], references: [id])
+
+  scheduleDays   DayOfWeek[]
+  startTime      DateTime     @db.Time
+  endTime        DateTime     @db.Time
+
+  room           String
+  maxCapacity    Int
+
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([classCode, academicTermId])
 }
 

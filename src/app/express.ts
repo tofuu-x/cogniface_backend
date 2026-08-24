@@ -6,6 +6,7 @@ import studentRoutes from "../modules/users/student/student.routes.js";
 import adminRoutes from "../modules/users/admin/admin.routes.js";
 import majorRoutes from "../modules/major/major.routes.js";
 import courseRoutes from "../modules/course/course.routes.js"
+import classRoutes from "../modules/class/class.routes.js"
 
 
 const app = express();
@@ -29,6 +30,9 @@ app.use("/api/major",majorRoutes);
 
 //Course Routes
 app.use("/api/course", courseRoutes)
+
+//Class Routes
+app.use("/api/class",classRoutes)
 
 app.use((req, res) => {
   res.status(404).json({
