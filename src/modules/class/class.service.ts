@@ -904,3 +904,116 @@ export const deleteClassService =
 
     return classRecord;
   };
+
+  //get students in  a class
+
+  export const getClassStudentsService = async (
+  classId: string,
+  reader: {
+    userId: string;
+    role: "SUPER_ADMIN" | "ADMIN" | "LECTURER" | "STUDENT";
+  }
+) => {
+  const classRecord = await prisma.class.findUnique({
+    where: {
+      id: classId,
+    },
+
+    select: {
+      id: true,
+      classCode: true,
+
+      lecturerId: true,
+
+      course: {
+        select: {
+          courseCode: true,
+          courseName: true,
+        },
+      },
+
+      academicTerm: {
+        select: {
+          semester: true,
+          year: true,
+        },
+      },
+    },
+  });
+
+  if (!classRecord) {
+    throw new AppError(
+      "Class not found",
+      404
+    );
+  }
+
+  // Lecturer can only view students from their own class.
+  // classRecord.lecturerId is the lecturer's internal UUID,
+  // which matches req.user.userId.
+  if (
+    reader.role === "LECTURER" &&
+    classRecord.lecturerId !== reader.userId
+  ) {
+    throw new AppError(
+      "You are not authorized to view students in this class",
+      403
+    );
+  }
+
+  const enrollments = await prisma.enrollment.findMany({
+    where: {
+      classId: classRecord.id,
+      status: "ONGOING",
+    },
+
+    select: {
+      student: {
+        select: {
+          studentId: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+
+          major: {
+            select: {
+              majorCode: true,
+              majorName: true,
+            },
+          },
+        },
+      },
+    },
+
+    orderBy: {
+      student: {
+        firstName: "asc",
+      },
+    },
+  });
+
+  const students = enrollments.map(
+    (enrollment) => enrollment.student
+  );
+
+  return {
+    class: {
+      id: classRecord.id,
+      classCode: classRecord.classCode,
+
+      courseCode:
+        classRecord.course.courseCode,
+
+      courseName:
+        classRecord.course.courseName,
+
+      semester:
+        classRecord.academicTerm.semester,
+
+      year:
+        classRecord.academicTerm.year,
+    },
+
+    students,
+  };
+};

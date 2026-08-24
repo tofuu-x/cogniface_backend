@@ -12,6 +12,7 @@ import {
   getAvailableClassesService,
   updateClassService,
   deleteClassService,
+  getClassStudentsService,
 } from "./class.service.js";
 
 import type {
@@ -175,5 +176,34 @@ export const deleteClass = async (
     message:
       "Class deleted successfully",
     class: classRecord,
+  });
+};
+
+
+export const getClassStudents = async (
+  req: Request<{
+    classId: string;
+  }>,
+  res: Response
+) => {
+  if (!req.user) {
+    throw new Error(
+      "Authenticated user missing"
+    );
+  }
+
+  const result =
+    await getClassStudentsService(
+      req.params.classId,
+      {
+        userId: req.user.userId,
+        role: req.user.role,
+      }
+    );
+
+  return res.status(200).json({
+    success: true,
+    count: result.students.length,
+    ...result,
   });
 };

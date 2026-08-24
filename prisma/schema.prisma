@@ -70,7 +70,11 @@ enum DayOfWeek {
   SUNDAY
 }
 
-
+enum EnrollmentStatus {
+  ONGOING
+  COMPLETED
+  DROPPED
+}
 
 
 
@@ -104,6 +108,7 @@ model Student{
 
   majorId String
   major Major @relation(fields: [majorId], references: [id])
+  enrollments Enrollment[]
 
   accountStatus   AccountStatus   @default(PENDING_ACTIVATION)
   faceRegistered  Boolean         @default(false)
@@ -204,6 +209,8 @@ model Class {
   startTime      DateTime     @db.Time
   endTime        DateTime     @db.Time
 
+  enrollments Enrollment[]
+
   room           String
   maxCapacity    Int
 
@@ -213,3 +220,22 @@ model Class {
   @@unique([classCode, academicTermId])
 }
 
+model Enrollment {
+  id          String           @id @default(uuid())
+
+  studentId   String
+  student     Student          @relation(fields: [studentId], references: [id])
+
+  classId     String
+  class       Class            @relation(fields: [classId], references: [id])
+
+  status      EnrollmentStatus @default(ONGOING)
+
+  enrolledAt  DateTime         @default(now())
+  droppedAt   DateTime?
+
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@unique([studentId, classId])
+}

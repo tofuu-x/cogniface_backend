@@ -9,6 +9,7 @@ import {
   getAvailableClasses,
   updateClass,
   deleteClass,
+  getClassStudents
 } from "./class.controller.js";
 
 import {
@@ -120,6 +121,17 @@ router.delete(
     "SUPER_ADMIN"
   ),
   deleteClass
+);
+
+router.get(
+  "/:classId/students",
+  authenticate,
+  authorizeRoles(
+    "ADMIN",
+    "SUPER_ADMIN",
+    "LECTURER"
+  ),
+  getClassStudents
 );
 
 
