@@ -76,6 +76,23 @@ enum EnrollmentStatus {
   DROPPED
 }
 
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+}
+
+
+enum AttendanceMethod {
+  MANUAL
+  FACIAL_RECOGNITION
+  SYSTEM
+}
+
+enum AttendanceSessionStatus {
+  OPEN
+  CLOSED
+}
 
 
 //TABLES
@@ -109,6 +126,8 @@ model Student{
   majorId String
   major Major @relation(fields: [majorId], references: [id])
   enrollments Enrollment[]
+
+  attendanceRecords AttendanceRecord[]
 
   accountStatus   AccountStatus   @default(PENDING_ACTIVATION)
   faceRegistered  Boolean         @default(false)
@@ -210,6 +229,7 @@ model Class {
   endTime        DateTime     @db.Time
 
   enrollments Enrollment[]
+  attendanceSessions AttendanceSession[]
 
   room           String
   maxCapacity    Int
@@ -238,4 +258,42 @@ model Enrollment {
   updatedAt   DateTime         @updatedAt
 
   @@unique([studentId, classId])
+}
+
+model AttendanceSession {
+  id        String                  @id @default(uuid())
+
+  classId   String
+  class     Class                   @relation(fields: [classId], references: [id])
+
+  status    AttendanceSessionStatus @default(OPEN)
+
+  startedAt DateTime                @default(now())
+  endedAt   DateTime?
+
+  records   AttendanceRecord[]
+
+  createdAt DateTime                @default(now())
+  updatedAt DateTime                @updatedAt
+}
+
+model AttendanceRecord {
+  id        String            @id @default(uuid())
+
+  sessionId String
+  session   AttendanceSession @relation( fields: [sessionId], references: [id], onDelete: Cascade)
+
+  studentId String
+  
+  student Student @relation(fields: [studentId], references: [id])
+
+  status    AttendanceStatus
+  method    AttendanceMethod
+
+  markedAt  DateTime @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([sessionId, studentId])
 }
