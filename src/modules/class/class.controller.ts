@@ -12,13 +12,15 @@ import {
   getAvailableClassesService,
   updateClassService,
   deleteClassService,
-  getClassStudentsService,
+  getClassStudentsService
 } from "./class.service.js";
 
 import type {
   CreateClassRequest,
   UpdateClassRequest,
 } from "./class.types.js";
+
+import { AppError } from "../../utils/appError.js";
 
 
 export const createClass = async (
@@ -179,7 +181,6 @@ export const deleteClass = async (
   });
 };
 
-
 export const getClassStudents = async (
   req: Request<{
     classId: string;
@@ -187,8 +188,9 @@ export const getClassStudents = async (
   res: Response
 ) => {
   if (!req.user) {
-    throw new Error(
-      "Authenticated user missing"
+    throw new AppError(
+      "Authenticated user missing",
+      401
     );
   }
 
@@ -203,7 +205,11 @@ export const getClassStudents = async (
 
   return res.status(200).json({
     success: true,
+
+    class: result.class,
+
     count: result.students.length,
-    ...result,
+
+    students: result.students,
   });
 };
