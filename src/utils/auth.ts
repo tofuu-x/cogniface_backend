@@ -20,10 +20,23 @@ export const hashPassword = async(
 //Generate JWT token
 export const generateJWT = (
   userId: string,
-  role: string
+  role: "SUPER_ADMIN" | "ADMIN" | "LECTURER" | "STUDENT",
+  publicIdentity?: {
+    studentId?: string;
+    lecturerId?: string;
+  }
 ) : string => {
   return jwt.sign(
-    {userId, role},
+    {
+      userId,
+      role,
+      ...(publicIdentity?.studentId && {
+        studentId: publicIdentity.studentId,
+      }),
+      ...(publicIdentity?.lecturerId && {
+        lecturerId: publicIdentity.lecturerId,
+      }),
+    },
     env.jwt_secret,
     {expiresIn: "1d"}
   );

@@ -793,6 +793,12 @@ export const getAvailableClassesService = async (
     prisma.class.findMany({
       where: {
         academicTermId: academicTerm.id,
+        enrollments: {
+          none: {
+            studentId: student.id,
+            status: "ONGOING",
+          },
+        },
         course: {
           status: "ACTIVE",
           majors: {
@@ -899,14 +905,6 @@ export const getAvailableClassesService = async (
         "Enrollment is not available for this academic term";
     } else if (enrollmentCount >= classRecord.maxCapacity) {
       unavailableReason = "This class is full";
-    } else if (
-      enrollments.some(
-        (enrollment) =>
-          enrollment.status === "ONGOING" &&
-          enrollment.classId === classRecord.id
-      )
-    ) {
-      unavailableReason = "You are already enrolled in this class";
     } else if (completedCourseIds.has(classRecord.courseId)) {
       unavailableReason = "You have already completed this course";
     } else if (ongoingCourseIds.has(classRecord.courseId)) {

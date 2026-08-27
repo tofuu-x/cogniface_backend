@@ -2,6 +2,53 @@
 
 All endpoints require a bearer token. Error responses use `{ "success": false, "message": "..." }`.
 
+## POST `/api/auth/login` role identity
+
+Role-specific public IDs are included consistently in both the signed JWT payload and login response data. These IDs are read from trusted database records, not the request body.
+
+- Student: `userId`, `role`, and `studentId`.
+- Lecturer: `userId`, `role`, and `lecturerId`.
+- Admin/Super Admin: `userId` and `role`; the schema has no separate public admin ID.
+
+Student JWT payload:
+
+```json
+{
+  "userId": "internal-student-uuid",
+  "role": "STUDENT",
+  "studentId": "S202600001",
+  "iat": 1787800000,
+  "exp": 1787886400
+}
+```
+
+Lecturer JWT payload:
+
+```json
+{
+  "userId": "internal-lecturer-uuid",
+  "role": "LECTURER",
+  "lecturerId": "L123456",
+  "iat": 1787800000,
+  "exp": 1787886400
+}
+```
+
+Lecturer login response data includes:
+
+```json
+{
+  "token": "jwt",
+  "userId": "internal-lecturer-uuid",
+  "lecturerId": "L123456",
+  "firstName": "Ada",
+  "email": "ada@example.com",
+  "role": "LECTURER"
+}
+```
+
+The frontend can use each role's public ID directly with role-specific endpoints. In particular, a lecturer can call `GET /api/lecturer/:lecturerId` even when they have no assigned classes.
+
 ## POST `/api/class`
 
 Roles: `ADMIN`, `SUPER_ADMIN`.

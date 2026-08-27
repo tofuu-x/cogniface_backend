@@ -41,15 +41,24 @@ export const loginUser = async (data : LoginRequest) : Promise<LoginResponse> =>
     throw new AppError("Account not active. Contact Admin",403)
   }
 
-  const token = generateJWT(user.id, role);
+  const token = generateJWT(
+    user.id,
+    role,
+    role === "STUDENT"
+      ? { studentId: user.studentId }
+      : role === "LECTURER"
+        ? { lecturerId: user.lecturerId }
+        : undefined
+  );
   
   return ({
     token,
     userId: user.id,
     ...(role === "STUDENT" && { studentId: user.studentId }),
+    ...(role === "LECTURER" && { lecturerId: user.lecturerId }),
     firstName : user.firstName,
     email : user.email,
-    role: user.role
+    role
   })
 
 }

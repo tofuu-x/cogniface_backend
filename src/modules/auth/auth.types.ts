@@ -8,7 +8,8 @@ export interface LoginResponse {
   token : string,
   userId : string,
   studentId? : string,
+  lecturerId? : string,
   firstName : string,
   email : string,
-  role : string
+  role : LoginRequest["role"]
 }

@@ -23,6 +23,12 @@ export const authenticate = (
     req.user = {
       userId: decoded.userId,
       role: decoded.role,
+      ...(decoded.studentId && {
+        studentId: decoded.studentId,
+      }),
+      ...(decoded.lecturerId && {
+        lecturerId: decoded.lecturerId,
+      }),
     };
 
     return next();
