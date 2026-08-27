@@ -10,6 +10,7 @@ import {
   getMyCurrentClassesService,
   getMyClassHistoryService,
   getAvailableClassesService,
+  getAvailableTermsService,
   updateClassService,
   deleteClassService,
   getClassStudentsService
@@ -18,6 +19,7 @@ import {
 import type {
   CreateClassRequest,
   UpdateClassRequest,
+  AvailableClassesQuery,
 } from "./class.types.js";
 
 import { AppError } from "../../utils/appError.js";
@@ -125,16 +127,42 @@ export const getMyClassHistory = async (
 
 
 export const getAvailableClasses = async (
-  _req: Request,
+  req: Request<{}, {}, {}, AvailableClassesQuery>,
   res: Response
 ) => {
-  const classes =
-    await getAvailableClassesService();
+  if (!req.user) {
+    throw new AppError(
+      "Authenticated user missing",
+      401
+    );
+  }
+
+  const result =
+    await getAvailableClassesService(
+      req.user.userId,
+      req.query
+    );
 
   return res.status(200).json({
     success: true,
-    count: classes.length,
-    classes,
+    count: result.classes.length,
+    selectedTerm: result.selectedTerm,
+    classes: result.classes,
+  });
+};
+
+
+export const getAvailableTerms = async (
+  _req: Request,
+  res: Response
+) => {
+  const terms =
+    await getAvailableTermsService();
+
+  return res.status(200).json({
+    success: true,
+    count: terms.length,
+    terms,
   });
 };
 

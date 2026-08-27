@@ -7,6 +7,7 @@ import {
   getMyCurrentClasses,
   getMyClassHistory,
   getAvailableClasses,
+  getAvailableTerms,
   updateClass,
   deleteClass,
   getClassStudents
@@ -71,6 +72,18 @@ router.get(
     "LECTURER"
   ),
   getMyClassHistory
+);
+
+
+// STUDENT
+// Current and future teaching periods with active class offerings
+router.get(
+  "/available/terms",
+  authenticate,
+  authorizeRoles(
+    "STUDENT"
+  ),
+  getAvailableTerms
 );
 
 

@@ -10,6 +10,8 @@ export interface CreateClassRequest {
 
   semester: Semester;
   year: number;
+  startDate?: string;
+  endDate?: string;
 
   scheduleDays: DayOfWeek[];
 
@@ -18,6 +20,11 @@ export interface CreateClassRequest {
 
   room: string;
   maxCapacity: number;
+}
+
+export interface AvailableClassesQuery {
+  semester?: string;
+  year?: string;
 }
 
 export interface UpdateClassRequest {

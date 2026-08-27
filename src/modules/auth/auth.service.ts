@@ -46,6 +46,7 @@ export const loginUser = async (data : LoginRequest) : Promise<LoginResponse> =>
   return ({
     token,
     userId: user.id,
+    ...(role === "STUDENT" && { studentId: user.studentId }),
     firstName : user.firstName,
     email : user.email,
     role: user.role

@@ -7,6 +7,7 @@ export interface LoginRequest {
 export interface LoginResponse {
   token : string,
   userId : string,
+  studentId? : string,
   firstName : string,
   email : string,
   role : string

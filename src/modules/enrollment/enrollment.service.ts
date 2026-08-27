@@ -6,507 +6,352 @@ import type {
   CreateEnrollmentRequest,
 } from "./enrollment.types.js";
 
+const MAX_COURSES_PER_TERM = 4;
+const MAX_TRANSACTION_ATTEMPTS = 3;
+
+const getToday = () => {
+  const now = new Date();
+  return new Date(Date.UTC(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate()
+  ));
+};
+
+const enrollmentSelect = {
+  id: true,
+  status: true,
+  enrolledAt: true,
+  class: {
+    select: {
+      id: true,
+      classCode: true,
+      course: {
+        select: {
+          courseCode: true,
+          courseName: true,
+        },
+      },
+      academicTerm: {
+        select: {
+          semester: true,
+          year: true,
+        },
+      },
+      lecturer: {
+        select: {
+          lecturerId: true,
+          firstName: true,
+          lastName: true,
+        },
+      },
+      scheduleDays: true,
+      startTime: true,
+      endTime: true,
+      room: true,
+    },
+  },
+} as const;
+
+const getPrismaErrorCode = (error: unknown) => {
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    typeof error.code === "string"
+  ) {
+    return error.code;
+  }
+
+  return null;
+};
+
 //Create Enrollment
 export const createEnrollmentService = async (
   studentUserId: string,
   data: CreateEnrollmentRequest
 ) => {
-
-  //1. Find logged in student
-
-  const student = await prisma.student.findUnique({
-    where: {
-      id: studentUserId,
-    },
-
-    select: {
-      id: true,
-      studentId: true,
-      majorId: true,
-    },
-  });
-
-
-  if (!student) {
-    throw new AppError(
-      "Student not found",
-      404
-    );
+  if (
+    typeof data.classId !== "string" ||
+    !data.classId.trim()
+  ) {
+    throw new AppError("classId is required", 400);
   }
 
+  for (let attempt = 1; attempt <= MAX_TRANSACTION_ATTEMPTS; attempt += 1) {
+    try {
+      return await prisma.$transaction(
+        async (tx) => {
+          const student = await tx.student.findUnique({
+            where: { id: studentUserId },
+            select: { id: true, majorId: true },
+          });
 
-  // 2. Find class
+          if (!student) {
+            throw new AppError("Student not found", 404);
+          }
 
-  const classRecord = await prisma.class.findUnique({
-    where: {
-      id: data.classId,
-    },
-
-    include: {
-
-      course: {
-        include: {
-
-          majors: {
-            select: {
-              id: true,
-              majorCode: true,
-            },
-          },
-
-          prerequisites: {
+          const classRecord = await tx.class.findUnique({
+            where: { id: data.classId },
             include: {
-
-              prerequisiteCourse: {
-                select: {
-                  id: true,
-                  courseCode: true,
-                  courseName: true,
+              course: {
+                include: {
+                  majors: { select: { id: true } },
+                  prerequisites: {
+                    include: {
+                      prerequisiteCourse: {
+                        select: {
+                          id: true,
+                          courseCode: true,
+                        },
+                      },
+                    },
+                  },
                 },
               },
-
+              academicTerm: true,
             },
-          },
+          });
 
-        },
-      },
+          if (!classRecord) {
+            throw new AppError("Class not found", 404);
+          }
 
-      academicTerm: true,
-    },
-  });
+          if (classRecord.course.status !== "ACTIVE") {
+            throw new AppError(
+              "This course is not available for enrollment",
+              400
+            );
+          }
 
+          if (
+            !classRecord.course.majors.some(
+              (major) => major.id === student.majorId
+            )
+          ) {
+            throw new AppError(
+              "This course is not available for your major",
+              403
+            );
+          }
 
-  if (!classRecord) {
-    throw new AppError(
-      "Class not found",
-      404
-    );
-  }
+          const now = new Date();
+          const today = getToday();
 
+          if (
+            today < classRecord.academicTerm.startDate ||
+            today > classRecord.academicTerm.endDate
+          ) {
+            throw new AppError(
+              "Enrollment is not available for this academic term",
+              400
+            );
+          }
 
-  //3. Course must be active
+          const existingClassEnrollment =
+            await tx.enrollment.findUnique({
+              where: {
+                studentId_classId: {
+                  studentId: student.id,
+                  classId: classRecord.id,
+                },
+              },
+            });
 
-  if (classRecord.course.status !== "ACTIVE") {
-    throw new AppError(
-      "This course is not available for enrollment",
-      400
-    );
-  }
+          if (existingClassEnrollment?.status === "ONGOING") {
+            throw new AppError(
+              "You are already enrolled in this class",
+              409
+            );
+          }
 
+          const completedCourseEnrollment =
+            await tx.enrollment.findFirst({
+              where: {
+                studentId: student.id,
+                status: "COMPLETED",
+                class: { courseId: classRecord.courseId },
+              },
+            });
 
-  //4. Class must belong to student's major
+          if (completedCourseEnrollment) {
+            throw new AppError(
+              "You have already completed this course",
+              409
+            );
+          }
 
-  const courseBelongsToMajor =
-    classRecord.course.majors.some(
-      (major) =>
-        major.id === student.majorId
-    );
+          const existingCourseEnrollment =
+            await tx.enrollment.findFirst({
+              where: {
+                studentId: student.id,
+                status: "ONGOING",
+                class: { courseId: classRecord.courseId },
+              },
+            });
 
+          if (existingCourseEnrollment) {
+            throw new AppError(
+              "You are already enrolled in this course",
+              409
+            );
+          }
 
-  if (!courseBelongsToMajor) {
-    throw new AppError(
-      "This course is not available for your major",
-      403
-    );
-  }
+          const prerequisiteCourseIds =
+            classRecord.course.prerequisites.map(
+              (prerequisite) =>
+                prerequisite.prerequisiteCourse.id
+            );
 
+          if (prerequisiteCourseIds.length > 0) {
+            const completedPrerequisites =
+              await tx.enrollment.findMany({
+                where: {
+                  studentId: student.id,
+                  status: "COMPLETED",
+                  class: {
+                    courseId: { in: prerequisiteCourseIds },
+                  },
+                },
+                select: {
+                  class: { select: { courseId: true } },
+                },
+              });
+            const completedCourseIds = new Set(
+              completedPrerequisites.map(
+                (enrollment) => enrollment.class.courseId
+              )
+            );
+            const missingCodes =
+              classRecord.course.prerequisites
+                .filter(
+                  (prerequisite) =>
+                    !completedCourseIds.has(
+                      prerequisite.prerequisiteCourse.id
+                    )
+                )
+                .map(
+                  (prerequisite) =>
+                    prerequisite.prerequisiteCourse.courseCode
+                );
 
-  //5. Academic term must be current
+            if (missingCodes.length > 0) {
+              throw new AppError(
+                `Missing prerequisites: ${missingCodes.join(", ")}`,
+                400
+              );
+            }
+          }
 
-  const today = new Date();
+          const currentEnrollmentCount =
+            await tx.enrollment.count({
+              where: {
+                classId: classRecord.id,
+                status: "ONGOING",
+              },
+            });
 
-  if (
-    today < classRecord.academicTerm.startDate ||
-    today > classRecord.academicTerm.endDate
-  ) {
-    throw new AppError(
-      "Enrollment is not available for this academic term",
-      400
-    );
-  }
+          if (currentEnrollmentCount >= classRecord.maxCapacity) {
+            throw new AppError("This class is full", 409);
+          }
 
+          const timetableConflict =
+            await tx.enrollment.findFirst({
+              where: {
+                studentId: student.id,
+                status: "ONGOING",
+                class: {
+                  academicTermId: classRecord.academicTermId,
+                  scheduleDays: {
+                    hasSome: classRecord.scheduleDays,
+                  },
+                  startTime: { lt: classRecord.endTime },
+                  endTime: { gt: classRecord.startTime },
+                },
+              },
+              select: {
+                class: { select: { classCode: true } },
+              },
+            });
 
-  // 6. Check exact class enrollment
+          if (timetableConflict) {
+            throw new AppError(
+              `Schedule conflict with ${timetableConflict.class.classCode}`,
+              409
+            );
+          }
 
-  const existingClassEnrollment =
-    await prisma.enrollment.findUnique({
+          const currentTermEnrollmentCount =
+            await tx.enrollment.count({
+              where: {
+                studentId: student.id,
+                status: "ONGOING",
+                class: {
+                  academicTermId: classRecord.academicTermId,
+                },
+              },
+            });
 
-      where: {
-        studentId_classId: {
-          studentId:
-            student.id,
+          if (currentTermEnrollmentCount >= MAX_COURSES_PER_TERM) {
+            throw new AppError(
+              `Maximum course load of ${MAX_COURSES_PER_TERM} courses per academic term has been reached`,
+              409
+            );
+          }
 
-          classId:
-            classRecord.id,
-        },
-      },
+          if (existingClassEnrollment) {
+            return tx.enrollment.update({
+              where: { id: existingClassEnrollment.id },
+              data: {
+                status: "ONGOING",
+                droppedAt: null,
+                enrolledAt: now,
+              },
+              select: enrollmentSelect,
+            });
+          }
 
-    });
-
-
-  if (
-    existingClassEnrollment?.status === "ONGOING"
-  ) {
-    throw new AppError(
-      "You are already enrolled in this class",
-      409
-    );
-  }
-
-  // 7. Prevent enrolling in another section of same course
-
-  const existingCourseEnrollment =
-    await prisma.enrollment.findFirst({
-
-      where: {
-
-        studentId:
-          student.id,
-
-        status:
-          "ONGOING",
-
-        class: {
-
-          courseId:
-            classRecord.courseId,
-
-          academicTermId:
-            classRecord.academicTermId,
-
-        },
-
-      },
-
-    });
-
-
-  if (existingCourseEnrollment) {
-    throw new AppError(
-      "You are already enrolled in another class of this course",
-      409
-    );
-  }
-
-
-  // 8. check prerequisites
-
-  const prerequisites =
-    classRecord.course.prerequisites;
-
-
-  if (prerequisites.length > 0) {
-
-    const prerequisiteCourseIds =
-      prerequisites.map(
-        (prerequisite) =>
-          prerequisite.prerequisiteCourse.id
-      );
-
-
-    const completedPrerequisites =
-      await prisma.enrollment.findMany({
-
-        where: {
-
-          studentId:
-            student.id,
-
-          status:
-            "COMPLETED",
-
-          class: {
-
-            courseId: {
-              in:
-                prerequisiteCourseIds,
+          return tx.enrollment.create({
+            data: {
+              studentId: student.id,
+              classId: classRecord.id,
             },
-
-          },
-
+            select: enrollmentSelect,
+          });
         },
-
-        select: {
-
-          class: {
-            select: {
-              courseId: true,
-            },
-          },
-
-        },
-
-      });
-
-
-    const completedCourseIds =
-      new Set(
-        completedPrerequisites.map(
-          (enrollment) =>
-            enrollment.class.courseId
-        )
+        { isolationLevel: "Serializable" }
       );
+    } catch (error) {
+      if (error instanceof AppError) {
+        throw error;
+      }
 
+      const code = getPrismaErrorCode(error);
 
-    const missingPrerequisites =
-      prerequisites.filter(
-        (prerequisite) =>
-          !completedCourseIds.has(
-            prerequisite
-              .prerequisiteCourse
-              .id
-          )
-      );
-
-
-    if (missingPrerequisites.length > 0) {
-
-      const missingCodes =
-        missingPrerequisites.map(
-          (prerequisite) =>
-            prerequisite
-              .prerequisiteCourse
-              .courseCode
+      if (code === "P2002") {
+        throw new AppError(
+          "You are already enrolled in this class",
+          409
         );
+      }
 
+      if (code !== "P2034" || attempt === MAX_TRANSACTION_ATTEMPTS) {
+        if (code === "P2034") {
+          throw new AppError(
+            "Enrollment could not be completed because availability changed; please try again",
+            409
+          );
+        }
 
-      throw new AppError(
-        `Missing prerequisites: ${missingCodes.join(", ")}`,
-        400
-      );
+        throw error;
+      }
     }
   }
 
-
-  
-  // 9. Check class capacity
-  
-
-  const currentEnrollmentCount =
-    await prisma.enrollment.count({
-
-      where: {
-
-        classId:
-          classRecord.id,
-
-        status:
-          "ONGOING",
-
-      },
-
-    });
-
-
-  if (
-    currentEnrollmentCount >=
-    classRecord.maxCapacity
-  ) {
-    throw new AppError(
-      "This class is full",
-      409
-    );
-  }
-
-
-  // 10. Check timetable conflict
-  
-
-  const timetableConflict =
-    await prisma.enrollment.findFirst({
-
-      where: {
-
-        studentId:
-          student.id,
-
-        status:
-          "ONGOING",
-
-        class: {
-
-          academicTermId:
-            classRecord.academicTermId,
-
-          scheduleDays: {
-            hasSome:
-              classRecord.scheduleDays,
-          },
-
-          startTime: {
-            lt:
-              classRecord.endTime,
-          },
-
-          endTime: {
-            gt:
-              classRecord.startTime,
-          },
-
-        },
-
-      },
-
-      include: {
-
-        class: {
-          select: {
-            classCode: true,
-          },
-        },
-
-      },
-
-    });
-
-
-  if (timetableConflict) {
-    throw new AppError(
-      `Schedule conflict with ${timetableConflict.class.classCode}`,
-      409
-    );
-  }
-
-
-  
-  // 11. Create / restore enrollment
-  
-
-  let enrollment;
-
-
-  if (existingClassEnrollment) {
-
-    // Student previously dropped this exact class.
-    // Reuse the existing record because of:
-    //
-    // @@unique([studentId, classId])
-
-    enrollment =
-      await prisma.enrollment.update({
-
-        where: {
-          id:
-            existingClassEnrollment.id,
-        },
-
-        data: {
-          status:
-            "ONGOING",
-
-          droppedAt:
-            null,
-
-          enrolledAt:
-            new Date(),
-        },
-
-        select: {
-          id: true,
-          status: true,
-          enrolledAt: true,
-
-          class: {
-
-            select: {
-
-              id: true,
-              classCode: true,
-
-              course: {
-                select: {
-                  courseCode: true,
-                  courseName: true,
-                },
-              },
-
-              academicTerm: {
-                select: {
-                  semester: true,
-                  year: true,
-                },
-              },
-
-              lecturer: {
-                select: {
-                  lecturerId: true,
-                  firstName: true,
-                  lastName: true,
-                },
-              },
-
-              scheduleDays: true,
-              startTime: true,
-              endTime: true,
-              room: true,
-            },
-
-          },
-        },
-      });
-
-  } else {
-
-    enrollment =
-      await prisma.enrollment.create({
-
-        data: {
-
-          studentId:
-            student.id,
-
-          classId:
-            classRecord.id,
-
-        },
-
-        select: {
-          id: true,
-          status: true,
-          enrolledAt: true,
-
-          class: {
-
-            select: {
-
-              id: true,
-              classCode: true,
-
-              course: {
-                select: {
-                  courseCode: true,
-                  courseName: true,
-                },
-              },
-
-              academicTerm: {
-                select: {
-                  semester: true,
-                  year: true,
-                },
-              },
-
-              lecturer: {
-                select: {
-                  lecturerId: true,
-                  firstName: true,
-                  lastName: true,
-                },
-              },
-
-              scheduleDays: true,
-              startTime: true,
-              endTime: true,
-              room: true,
-            },
-
-          },
-        },
-      });
-  }
-
-
-  return enrollment;
+  throw new AppError(
+    "Enrollment could not be completed because availability changed; please try again",
+    409
+  );
 };
 
 

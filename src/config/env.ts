@@ -14,6 +14,7 @@ const env = {
   port : required("PORT"),
   database_url : required("DEV_DATABASE_URL"),
   node_env : required("NODE_ENV"),
+  client_origin : process.env.CLIENT_ORIGIN,
   salt_rounds : (() => {
     const value = Number(required("SALT_ROUNDS"));
 

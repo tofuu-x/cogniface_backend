@@ -5,7 +5,55 @@ import { AppError } from "../../utils/appError.js";
 import type {
   CreateClassRequest,
   UpdateClassRequest,
+  AvailableClassesQuery,
 } from "./class.types.js";
+
+const MAX_COURSES_PER_TERM = 4;
+
+const getToday = () => {
+  const now = new Date();
+  return new Date(Date.UTC(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate()
+  ));
+};
+
+const isTermOpenForEnrollment = (
+  term: { startDate: Date; endDate: Date },
+  now = new Date()
+) =>
+  now >= term.startDate &&
+  now <= term.endDate;
+
+const parseAcademicTermDate = (
+  value: string,
+  fieldName: string
+) => {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    throw new AppError(
+      `${fieldName} must be a valid date`,
+      400
+    );
+  }
+
+  return date;
+};
+
+const getPrismaErrorCode = (error: unknown) => {
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    typeof error.code === "string"
+  ) {
+    return error.code;
+  }
+
+  return null;
+};
 
 
 // -----------------------------
@@ -65,6 +113,16 @@ export const createClassService = async (
 
   const room =
     data.room.trim();
+
+  if (
+    data.semester !== "SEMESTER_1" &&
+    data.semester !== "SEMESTER_2"
+  ) {
+    throw new AppError(
+      "Semester must be SEMESTER_1 or SEMESTER_2",
+      400
+    );
+  }
 
 
   if (!classCode) {
@@ -181,7 +239,7 @@ export const createClassService = async (
 
 
   // Find Academic Term
-  const academicTerm =
+  let academicTerm =
     await prisma.academicTerm.findUnique({
       where: {
         semester_year: {
@@ -192,10 +250,45 @@ export const createClassService = async (
     });
 
   if (!academicTerm) {
-    throw new AppError(
-      "Academic term not found",
-      404
+    if (!data.startDate || !data.endDate) {
+      throw new AppError(
+        "Academic term not found; startDate and endDate are required to create it",
+        400
+      );
+    }
+
+    const startDate = parseAcademicTermDate(
+      data.startDate,
+      "startDate"
     );
+    const endDate = parseAcademicTermDate(
+      data.endDate,
+      "endDate"
+    );
+
+    if (startDate >= endDate) {
+      throw new AppError(
+        "Academic term endDate must be after startDate",
+        400
+      );
+    }
+
+    academicTerm =
+      await prisma.academicTerm.upsert({
+        where: {
+          semester_year: {
+            semester: data.semester,
+            year: data.year,
+          },
+        },
+        update: {},
+        create: {
+          semester: data.semester,
+          year: data.year,
+          startDate,
+          endDate,
+        },
+      });
   }
 
 
@@ -254,8 +347,8 @@ export const createClassService = async (
 
 
   // Create
-  const classRecord =
-    await prisma.class.create({
+  try {
+    return await prisma.class.create({
       data: {
         classCode,
 
@@ -315,8 +408,16 @@ export const createClassService = async (
         maxCapacity: true,
       },
     });
+  } catch (error) {
+    if (getPrismaErrorCode(error) === "P2002") {
+      throw new AppError(
+        "A class with this code already exists in this academic term",
+        409
+      );
+    }
 
-  return classRecord;
+    throw error;
+  }
 };
 
 
@@ -558,50 +659,163 @@ export const getMyClassHistoryService =
 // STUDENT: AVAILABLE CLASSES
 // -----------------------------
 
-export const getAvailableClassesService =
-  async () => {
-    const today =
-      new Date();
-
-    const currentTerm =
-      await prisma.academicTerm.findFirst({
-        where: {
-          startDate: {
-            lte: today,
+export const getAvailableTermsService = async () => {
+  const today = getToday();
+  const terms = await prisma.academicTerm.findMany({
+    where: {
+      endDate: {
+        gte: today,
+      },
+      classes: {
+        some: {
+          course: {
+            status: "ACTIVE",
           },
-
-          endDate: {
-            gte: today,
-          },
-        },
-      });
-
-    if (!currentTerm) {
-      return [];
-    }
-
-    return prisma.class.findMany({
-      where: {
-        academicTermId:
-          currentTerm.id,
-
-        course: {
-          status: "ACTIVE",
         },
       },
+    },
+    select: {
+      semester: true,
+      year: true,
+      startDate: true,
+      endDate: true,
+    },
+    orderBy: [
+      { startDate: "asc" },
+      { semester: "asc" },
+    ],
+  });
 
+  return terms.map((term) => ({
+    ...term,
+    isOpenForEnrollment:
+      isTermOpenForEnrollment(term, today),
+  }));
+};
+
+
+const validateAvailableClassesQuery = (
+  query: AvailableClassesQuery
+) => {
+  const hasSemester = query.semester !== undefined;
+  const hasYear = query.year !== undefined;
+
+  if (hasSemester !== hasYear) {
+    throw new AppError(
+      "semester and year must be provided together",
+      400
+    );
+  }
+
+  if (!hasSemester || !hasYear) {
+    return null;
+  }
+
+  if (
+    query.semester !== "SEMESTER_1" &&
+    query.semester !== "SEMESTER_2"
+  ) {
+    throw new AppError(
+      "semester must be SEMESTER_1 or SEMESTER_2",
+      400
+    );
+  }
+
+  if (!/^\d{4}$/.test(query.year!)) {
+    throw new AppError(
+      "year must be a four-digit academic year",
+      400
+    );
+  }
+
+  const year = Number(query.year);
+
+  if (year < 2000 || year > 2100) {
+    throw new AppError(
+      "year must be between 2000 and 2100",
+      400
+    );
+  }
+
+  return {
+    semester: query.semester as
+      | "SEMESTER_1"
+      | "SEMESTER_2",
+    year,
+  };
+};
+
+
+export const getAvailableClassesService = async (
+  studentUserId: string,
+  query: AvailableClassesQuery
+) => {
+  const today = getToday();
+  const requestedTerm =
+    validateAvailableClassesQuery(query);
+
+  const [student, academicTerm] = await Promise.all([
+    prisma.student.findUnique({
+      where: { id: studentUserId },
+      select: { id: true, majorId: true },
+    }),
+    requestedTerm
+      ? prisma.academicTerm.findUnique({
+          where: {
+            semester_year: requestedTerm,
+          },
+        })
+      : prisma.academicTerm.findFirst({
+          where: {
+            startDate: { lte: today },
+            endDate: { gte: today },
+          },
+          orderBy: { startDate: "desc" },
+        }),
+  ]);
+
+  if (!student) {
+    throw new AppError("Student not found", 404);
+  }
+
+  if (!academicTerm) {
+    if (requestedTerm) {
+      throw new AppError("Academic term not found", 404);
+    }
+
+    return {
+      selectedTerm: null,
+      classes: [],
+    };
+  }
+
+  const [classes, enrollments] = await Promise.all([
+    prisma.class.findMany({
+      where: {
+        academicTermId: academicTerm.id,
+        course: {
+          status: "ACTIVE",
+          majors: {
+            some: { id: student.majorId },
+          },
+        },
+      },
       select: {
         id: true,
         classCode: true,
-
+        courseId: true,
         course: {
           select: {
             courseCode: true,
             courseName: true,
+            description: true,
             creditPoints: true,
+            status: true,
+            prerequisites: {
+              select: { prerequisiteCourseId: true },
+            },
           },
         },
-
         lecturer: {
           select: {
             lecturerId: true,
@@ -609,27 +823,153 @@ export const getAvailableClassesService =
             lastName: true,
           },
         },
-
         academicTerm: {
           select: {
             semester: true,
             year: true,
+            startDate: true,
+            endDate: true,
           },
         },
-
         scheduleDays: true,
         startTime: true,
         endTime: true,
-
         room: true,
         maxCapacity: true,
+        _count: {
+          select: {
+            enrollments: {
+              where: { status: "ONGOING" },
+            },
+          },
+        },
       },
+      orderBy: { classCode: "asc" },
+    }),
+    prisma.enrollment.findMany({
+      where: {
+        studentId: student.id,
+        status: { in: ["ONGOING", "COMPLETED"] },
+      },
+      select: {
+        classId: true,
+        status: true,
+        class: {
+          select: {
+            courseId: true,
+            academicTermId: true,
+            scheduleDays: true,
+            startTime: true,
+            endTime: true,
+          },
+        },
+      },
+    }),
+  ]);
 
-      orderBy: {
-        classCode: "asc",
-      },
-    });
+  const ongoingInTerm = enrollments.filter(
+    (enrollment) =>
+      enrollment.status === "ONGOING" &&
+      enrollment.class.academicTermId === academicTerm.id
+  );
+  const completedCourseIds = new Set(
+    enrollments
+      .filter((enrollment) => enrollment.status === "COMPLETED")
+      .map((enrollment) => enrollment.class.courseId)
+  );
+  const ongoingCourseIds = new Set(
+    enrollments
+      .filter((enrollment) => enrollment.status === "ONGOING")
+      .map((enrollment) => enrollment.class.courseId)
+  );
+  const termIsOpen =
+    isTermOpenForEnrollment(academicTerm, today);
+
+  const formattedClasses = classes.map((classRecord) => {
+    const enrollmentCount =
+      classRecord._count.enrollments;
+    const remainingCapacity = Math.max(
+      classRecord.maxCapacity - enrollmentCount,
+      0
+    );
+    let unavailableReason: string | null = null;
+
+    if (!termIsOpen) {
+      unavailableReason =
+        "Enrollment is not available for this academic term";
+    } else if (enrollmentCount >= classRecord.maxCapacity) {
+      unavailableReason = "This class is full";
+    } else if (
+      enrollments.some(
+        (enrollment) =>
+          enrollment.status === "ONGOING" &&
+          enrollment.classId === classRecord.id
+      )
+    ) {
+      unavailableReason = "You are already enrolled in this class";
+    } else if (completedCourseIds.has(classRecord.courseId)) {
+      unavailableReason = "You have already completed this course";
+    } else if (ongoingCourseIds.has(classRecord.courseId)) {
+      unavailableReason =
+        "You are already enrolled in this course";
+    } else {
+      const missingPrerequisite =
+        classRecord.course.prerequisites.some(
+          (prerequisite) =>
+            !completedCourseIds.has(
+              prerequisite.prerequisiteCourseId
+            )
+        );
+
+      if (missingPrerequisite) {
+        unavailableReason =
+          "Course prerequisites have not been completed";
+      } else if (ongoingInTerm.length >= MAX_COURSES_PER_TERM) {
+        unavailableReason =
+          `Maximum course load of ${MAX_COURSES_PER_TERM} courses per academic term has been reached`;
+      } else {
+        const conflict = ongoingInTerm.some(
+          (enrollment) =>
+            enrollment.class.scheduleDays.some((day) =>
+              classRecord.scheduleDays.includes(day)
+            ) &&
+            enrollment.class.startTime < classRecord.endTime &&
+            enrollment.class.endTime > classRecord.startTime
+        );
+
+        if (conflict) {
+          unavailableReason =
+            "This class conflicts with your timetable";
+        }
+      }
+    }
+
+    const { _count, courseId, course, ...classDetails } =
+      classRecord;
+    const { prerequisites, ...courseDetails } = course;
+
+    return {
+      ...classDetails,
+      course: courseDetails,
+      enrollmentCount,
+      remainingCapacity,
+      isFull: remainingCapacity === 0,
+      availableToStudent: unavailableReason === null,
+      unavailableReason,
+    };
+  });
+
+  return {
+    selectedTerm: {
+      semester: academicTerm.semester,
+      year: academicTerm.year,
+      startDate: academicTerm.startDate,
+      endDate: academicTerm.endDate,
+      isOpenForEnrollment: termIsOpen,
+    },
+    classes: formattedClasses,
   };
+};
 
 
 // -----------------------------
