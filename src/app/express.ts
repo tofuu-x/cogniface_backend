@@ -11,6 +11,7 @@ import courseRoutes from "../modules/course/course.routes.js"
 import classRoutes from "../modules/class/class.routes.js"
 import enrollmentRoutes from "../modules/enrollment/enrollment.routes.js";
 import attendanceRoutes from "../modules/attendance/attendance.routes.js"
+import dashboardRoutes from "../modules/dashboard/dashboard.routes.js";
 
 
 const app = express();
@@ -51,6 +52,9 @@ app.use("/api/enrollment",enrollmentRoutes)
 
 //Attendance Routes
 app.use("/api/attendance",attendanceRoutes)
+
+//Dashboard Routes
+app.use("/api/dashboard",dashboardRoutes)
 
 app.use((req, res) => {
   res.status(404).json({

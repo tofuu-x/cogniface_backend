@@ -540,3 +540,41 @@ export const archiveCourseService = async (
     },
   });
 };
+
+// Unarchive Course
+export const unarchiveCourseService = async (
+  courseCode: string
+) => {
+  const course =
+    await prisma.course.findUnique({
+      where: {
+        courseCode:
+          courseCode
+            .trim()
+            .toUpperCase(),
+      },
+    });
+
+  if (!course) {
+    throw new AppError(
+      "Course not found",
+      404
+    );
+  }
+
+  return prisma.course.update({
+    where: {
+      id: course.id,
+    },
+
+    data: {
+      status: "ACTIVE",
+    },
+
+    select: {
+      courseCode: true,
+      courseName: true,
+      status: true,
+    },
+  });
+};

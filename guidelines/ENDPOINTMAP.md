@@ -49,6 +49,35 @@ Lecturer login response data includes:
 
 The frontend can use each role's public ID directly with role-specific endpoints. In particular, a lecturer can call `GET /api/lecturer/:lecturerId` even when they have no assigned classes.
 
+## PATCH `/api/auth/password`
+
+Roles: `ADMIN`, `SUPER_ADMIN`, `LECTURER`, `STUDENT`.
+
+Requires a valid bearer token. This endpoint changes the password of the currently authenticated user; no user ID or role is accepted in the request body. The account is selected using the trusted identity and role from the JWT.
+
+Request body:
+
+```json
+{
+  "oldPassword": "CurrentPassword123",
+  "newPassword": "NewPassword456",
+  "confirmPassword": "NewPassword456"
+}
+```
+
+The three fields are required strings. The new password must contain at least eight characters, must match `confirmPassword`, and must differ from the old password. The backend verifies `oldPassword` against the stored bcrypt hash and stores only a newly generated bcrypt hash of `newPassword`.
+
+Successful response:
+
+```json
+{
+  "success": true,
+  "message": "Password changed successfully"
+}
+```
+
+Validation errors return `400`. An incorrect old password returns `401`; a missing or invalid bearer token also returns `401`. If the authenticated account no longer exists, the endpoint returns `404`.
+
 ## POST `/api/class`
 
 Roles: `ADMIN`, `SUPER_ADMIN`.
@@ -141,3 +170,67 @@ The request body is unchanged:
 Enrollment remains attached to the selected class. The backend validates the active course, student's major, academic-term enrollment window, capacity, prerequisites, duplicate/current/completed course enrollment, the maximum of four ongoing courses in the selected term, and schedule conflicts against ongoing enrollments in the same academic term.
 
 The checks and create/reactivate write execute in a serializable Prisma transaction with conflict retries, preventing concurrent requests from exceeding capacity. Capacity, duplicate enrollment, schedule conflict, and course-load conflicts return `409` with stable frontend-displayable messages.
+
+## GET `/api/dashboard/admin`
+
+Roles: `ADMIN`, `SUPER_ADMIN`.
+
+Returns summary statistics for the admin dashboard and the current academic term:
+
+```json
+{
+  "success": true,
+  "dashboard": {
+    "stats": {
+      "totalStudents": 120,
+      "totalLecturers": 18,
+      "totalMajors": 6,
+      "totalCourses": 42,
+      "ongoingClasses": 15
+    },
+    "currentTerm": {
+      "id": "academic-term-uuid",
+      "semester": "SEMESTER_1",
+      "year": 2027,
+      "startDate": "2027-02-22T00:00:00.000Z",
+      "endDate": "2027-06-20T00:00:00.000Z"
+    }
+  }
+}
+```
+
+Student and lecturer totals exclude accounts with `INACTIVE` status. The course total includes only `ACTIVE` courses. `ongoingClasses` counts classes assigned to the current academic term. If no term contains the current date, `currentTerm` is `null` and `ongoingClasses` is `0`.
+
+## GET `/api/dashboard/lecturer`
+
+Role: `LECTURER`.
+
+Requires a valid bearer token. The lecturer is identified from the authenticated user's `userId`; no lecturer ID is accepted in the request path or query. The endpoint returns the authenticated lecturer's profile, summary statistics for classes assigned to them in the current academic term, and the current academic term:
+
+```json
+{
+  "success": true,
+  "dashboard": {
+    "lecturer": {
+      "lecturerId": "L123456",
+      "firstName": "Ada",
+      "lastName": "Lovelace",
+      "email": "ada@example.com",
+      "department": "Computer Science"
+    },
+    "stats": {
+      "currentClasses": 3,
+      "totalEnrollments": 86
+    },
+    "currentTerm": {
+      "id": "academic-term-uuid",
+      "semester": "SEMESTER_1",
+      "year": 2027,
+      "startDate": "2027-02-22T00:00:00.000Z",
+      "endDate": "2027-06-20T00:00:00.000Z"
+    }
+  }
+}
+```
+
+`currentClasses` counts the lecturer's classes assigned to the term containing the current date. `totalEnrollments` counts only `ONGOING` enrollments in those classes. If no term contains the current date, both statistics are `0` and `currentTerm` is `null`. If the authenticated user has no lecturer record, the endpoint returns `404` with `Lecturer not found`.

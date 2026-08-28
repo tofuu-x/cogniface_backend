@@ -10,6 +10,7 @@ import {
   updateCourseService,
   deleteCourseService,
   archiveCourseService,
+  unarchiveCourseService,
 } from "./course.service.js";
 
 import type {
@@ -126,6 +127,25 @@ export const archiveCourse = async (
     success: true,
     message:
       "Course archived successfully",
+    course,
+  });
+};
+
+export const unarchiveCourse = async (
+  req: Request<{
+    courseCode: string;
+  }>,
+  res: Response
+) => {
+  const course =
+    await unarchiveCourseService(
+      req.params.courseCode
+    );
+
+  return res.status(200).json({
+    success: true,
+    message:
+      "Course unarchived successfully",
     course,
   });
 };

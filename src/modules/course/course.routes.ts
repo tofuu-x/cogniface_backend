@@ -7,6 +7,7 @@ import {
   updateCourse,
   deleteCourse,
   archiveCourse,
+  unarchiveCourse,
 } from "./course.controller.js";
 
 import {
@@ -61,6 +62,16 @@ router.patch(
     "SUPER_ADMIN"
   ),
   archiveCourse
+);
+
+router.patch(
+  "/:courseCode/unarchive",
+  authenticate,
+  authorizeRoles(
+    "ADMIN",
+    "SUPER_ADMIN"
+  ),
+  unarchiveCourse
 );
 
 router.delete(

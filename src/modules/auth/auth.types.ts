@@ -13,3 +13,9 @@ export interface LoginResponse {
   email : string,
   role : LoginRequest["role"]
 }
+
+export interface ChangePasswordRequest {
+  oldPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
