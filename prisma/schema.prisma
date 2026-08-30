@@ -1,7 +1,6 @@
-
 generator client {
   provider = "prisma-client"
-  output = "../src/generated/prisma"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
@@ -15,12 +14,12 @@ enum AccountStatus {
   INACTIVE
 }
 
-enum AdminRole{
-  ADMIN 
+enum AdminRole {
+  ADMIN
   SUPER_ADMIN
 }
 
-enum Department{
+enum Department {
   // Engineering & Technology
   COMPUTER_SCIENCE
   INFORMATION_TECHNOLOGY
@@ -28,7 +27,7 @@ enum Department{
   ENGINEERING
   ARCHITECTURE
 
-// Business & Economics
+  // Business & Economics
   BUSINESS_ADMINISTRATION
   ACCOUNTING
   FINANCE
@@ -50,7 +49,7 @@ enum DegreeType {
   PHD
 }
 
-enum CourseStatus{
+enum CourseStatus {
   ACTIVE
   ARCHIVED
 }
@@ -82,7 +81,6 @@ enum AttendanceStatus {
   LATE
 }
 
-
 enum AttendanceMethod {
   MANUAL
   FACIAL_RECOGNITION
@@ -94,57 +92,62 @@ enum AttendanceSessionStatus {
   CLOSED
 }
 
+enum AttendanceCorrectionActorRole {
+  LECTURER
+  ADMIN
+  SUPER_ADMIN
+}
 
 //TABLES
 
 model Admin {
   id            String        @id @default(uuid())
   firstName     String
-  lastName      String  
-  email         String        @unique 
+  lastName      String
+  email         String        @unique
   password      String
   phoneNumber   String        @unique
   dateOfBirth   DateTime      @db.Date
   role          AdminRole     @default(ADMIN)
   accountStatus AccountStatus @default(PENDING_ACTIVATION)
   createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt 
+  updatedAt     DateTime      @updatedAt
 }
 
 //Student
-model Student{
-  id              String          @id @default(uuid())
-  studentId       String          @unique
-  firstName       String
-  lastName        String
-  email           String          @unique
-  password        String
-  phoneNumber     String          @unique
-  dateOfBirth     DateTime        @db.Date    
-  enrollmentYear  Int
+model Student {
+  id             String   @id @default(uuid())
+  studentId      String   @unique
+  firstName      String
+  lastName       String
+  email          String   @unique
+  password       String
+  phoneNumber    String   @unique
+  dateOfBirth    DateTime @db.Date
+  enrollmentYear Int
 
-  majorId String
-  major Major @relation(fields: [majorId], references: [id])
+  majorId     String
+  major       Major        @relation(fields: [majorId], references: [id])
   enrollments Enrollment[]
 
   attendanceRecords AttendanceRecord[]
 
-  accountStatus   AccountStatus   @default(PENDING_ACTIVATION)
-  faceRegistered  Boolean         @default(false)
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt 
+  accountStatus  AccountStatus @default(PENDING_ACTIVATION)
+  faceRegistered Boolean       @default(false)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 }
 
 //Lecturer
 model Lecturer {
   id            String        @id @default(uuid())
-  lecturerId    String        @unique  
+  lecturerId    String        @unique
   firstName     String
   lastName      String
   email         String        @unique
   password      String
   phoneNumber   String        @unique
-  dateOfBirth   DateTime      @db.Date    
+  dateOfBirth   DateTime      @db.Date
   department    Department
   accountStatus AccountStatus @default(PENDING_ACTIVATION)
   createdAt     DateTime      @default(now())
@@ -153,19 +156,18 @@ model Lecturer {
   classes Class[]
 }
 
-
 //Major
-model Major{
-  id        String    @id @default(uuid())
-  majorCode   String  @unique
-  majorName     String
-  department    Department
-  degreeType    DegreeType
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+model Major {
+  id         String     @id @default(uuid())
+  majorCode  String     @unique
+  majorName  String
+  department Department
+  degreeType DegreeType
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
 
-  students  Student[] 
-  courses Course[]   
+  students Student[]
+  courses  Course[]
 }
 
 model Course {
@@ -179,20 +181,20 @@ model Course {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  majors Major[]
+  majors  Major[]
   classes Class[]
 
   prerequisites CoursePrerequisite[] @relation("CoursePrerequisites")
   requiredFor   CoursePrerequisite[] @relation("PrerequisiteFor")
 }
 
-model CoursePrerequisite{
-  id    String  @id @default(uuid())
+model CoursePrerequisite {
+  id String @id @default(uuid())
 
-  courseId    String
-  prerequisiteCourseId  String
+  courseId             String
+  prerequisiteCourseId String
 
-  course Course @relation("CoursePrerequisites", fields:[courseId], references: [id], onDelete: Cascade)
+  course Course @relation("CoursePrerequisites", fields: [courseId], references: [id], onDelete: Cascade)
 
   prerequisiteCourse Course @relation("PrerequisiteFor", fields: [prerequisiteCourseId], references: [id], onDelete: Cascade)
 
@@ -206,94 +208,113 @@ model AcademicTerm {
   startDate DateTime @db.Date
   endDate   DateTime @db.Date
 
-  classes   Class[]
+  classes Class[]
 
   @@unique([semester, year])
 }
 
 model Class {
-  id             String       @id @default(uuid())
-  classCode      String
+  id        String @id @default(uuid())
+  classCode String
 
-  courseId       String
-  course         Course       @relation(fields: [courseId], references: [id])
+  courseId String
+  course   Course @relation(fields: [courseId], references: [id])
 
-  lecturerId     String
-  lecturer       Lecturer     @relation(fields: [lecturerId], references: [id])
+  lecturerId String
+  lecturer   Lecturer @relation(fields: [lecturerId], references: [id])
 
   academicTermId String
   academicTerm   AcademicTerm @relation(fields: [academicTermId], references: [id])
 
-  scheduleDays   DayOfWeek[]
-  startTime      DateTime     @db.Time
-  endTime        DateTime     @db.Time
+  scheduleDays DayOfWeek[]
+  startTime    DateTime    @db.Time
+  endTime      DateTime    @db.Time
 
-  enrollments Enrollment[]
+  enrollments        Enrollment[]
   attendanceSessions AttendanceSession[]
 
-  room           String
-  maxCapacity    Int
+  room        String
+  maxCapacity Int
 
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([classCode, academicTermId])
 }
 
 model Enrollment {
-  id          String           @id @default(uuid())
+  id String @id @default(uuid())
 
-  studentId   String
-  student     Student          @relation(fields: [studentId], references: [id])
+  studentId String
+  student   Student @relation(fields: [studentId], references: [id])
 
-  classId     String
-  class       Class            @relation(fields: [classId], references: [id])
+  classId String
+  class   Class  @relation(fields: [classId], references: [id])
 
-  status      EnrollmentStatus @default(ONGOING)
+  status EnrollmentStatus @default(ONGOING)
 
-  enrolledAt  DateTime         @default(now())
-  droppedAt   DateTime?
+  enrolledAt DateTime  @default(now())
+  droppedAt  DateTime?
 
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([studentId, classId])
 }
 
 model AttendanceSession {
-  id        String                  @id @default(uuid())
+  id String @id @default(uuid())
 
-  classId   String
-  class     Class                   @relation(fields: [classId], references: [id])
+  classId String
+  class   Class  @relation(fields: [classId], references: [id])
 
-  status    AttendanceSessionStatus @default(OPEN)
+  status AttendanceSessionStatus @default(OPEN)
 
-  startedAt DateTime                @default(now())
-  endedAt   DateTime?
+  startedAt      DateTime  @default(now())
+  endedAt        DateTime?
+  occurrenceDate DateTime  @db.Date
 
-  records   AttendanceRecord[]
+  records AttendanceRecord[]
 
-  createdAt DateTime                @default(now())
-  updatedAt DateTime                @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([classId, occurrenceDate])
 }
 
 model AttendanceRecord {
-  id        String            @id @default(uuid())
+  id String @id @default(uuid())
 
   sessionId String
-  session   AttendanceSession @relation( fields: [sessionId], references: [id], onDelete: Cascade)
+  session   AttendanceSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 
   studentId String
-  
+
   student Student @relation(fields: [studentId], references: [id])
 
-  status    AttendanceStatus
-  method    AttendanceMethod
+  status AttendanceStatus
+  method AttendanceMethod
 
-  markedAt  DateTime @default(now())
+  markedAt DateTime @default(now())
+
+  corrections AttendanceCorrection[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@unique([sessionId, studentId])
+}
+
+model AttendanceCorrection {
+  id                 String                        @id @default(uuid())
+  attendanceRecordId String
+  attendanceRecord   AttendanceRecord              @relation(fields: [attendanceRecordId], references: [id], onDelete: Cascade)
+  previousStatus     AttendanceStatus
+  newStatus          AttendanceStatus
+  correctedByUserId  String
+  correctedByRole    AttendanceCorrectionActorRole
+  reason             String
+  createdAt          DateTime                      @default(now())
+
+  @@index([attendanceRecordId])
 }

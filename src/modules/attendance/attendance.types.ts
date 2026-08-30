@@ -8,6 +8,11 @@ export interface MarkManualAttendanceRequest {
   status: AttendanceStatus;
 }
 
+export interface CorrectAttendanceRequest {
+  status: AttendanceStatus;
+  reason: string;
+}
+
 export interface AttendanceReader {
   userId: string;
   role: "SUPER_ADMIN" | "ADMIN" | "LECTURER" | "STUDENT";

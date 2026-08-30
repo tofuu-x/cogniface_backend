@@ -4,6 +4,7 @@
   "main": "dist/app/server.js",
   "scripts": {
     "build": "tsc",
+    "test": "tsx --test src/modules/attendance/attendanceTime.test.ts",
     "start": "node ./dist/app/server.js",
     "dev": "tsx watch ./src/app/server.ts"
   },

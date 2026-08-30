@@ -4,9 +4,75 @@ import { AppError } from "../../utils/appError.js";
 
 import type {
   AttendanceReader,
+  CorrectAttendanceRequest,
   CreateAttendanceSessionRequest,
   MarkManualAttendanceRequest,
 } from "./attendance.types.js";
+import {
+  getAttendanceOccurrenceDate,
+  toOccurrenceDate,
+  validateAttendanceStartWindow,
+} from "./attendanceTime.js";
+
+const attendanceStatuses = new Set([
+  "PRESENT",
+  "ABSENT",
+  "LATE",
+]);
+
+const getPrismaErrorCode = (error: unknown) => {
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    typeof error.code === "string"
+  ) {
+    return error.code;
+  }
+
+  return null;
+};
+
+const attendanceSessionSelect = {
+  id: true,
+  status: true,
+  occurrenceDate: true,
+  startedAt: true,
+
+  class: {
+    select: {
+      id: true,
+      classCode: true,
+
+      course: {
+        select: {
+          courseCode: true,
+          courseName: true,
+        },
+      },
+
+      lecturer: {
+        select: {
+          lecturerId: true,
+          firstName: true,
+          lastName: true,
+        },
+      },
+
+      academicTerm: {
+        select: {
+          semester: true,
+          year: true,
+        },
+      },
+
+      scheduleDays: true,
+      startTime: true,
+      endTime: true,
+      room: true,
+    },
+  },
+} as const;
 
 
 // ==================================================
@@ -90,104 +156,72 @@ export const createAttendanceSessionService =
       );
 
 
-    // ----------------------------------------------
-    // Check academic term is currently active
-    // ----------------------------------------------
-
     const now = new Date();
+    const occurrenceDateKey = getAttendanceOccurrenceDate(now);
+    const occurrenceDate = toOccurrenceDate(occurrenceDateKey);
 
-    if (
-      now <
-        classRecord.academicTerm.startDate ||
-      now >
-        classRecord.academicTerm.endDate
-    ) {
-      throw new AppError(
-        "Attendance cannot be started outside the class academic term",
-        400
-      );
-    }
-
-
-    // ----------------------------------------------
-    // Prevent two OPEN attendance sessions
-    // for the same class
-    // ----------------------------------------------
-
-    const existingOpenSession =
-      await prisma.attendanceSession.findFirst({
+    const findOccurrence = () =>
+      prisma.attendanceSession.findUnique({
         where: {
-          classId:
-            classRecord.id,
-
-          status:
-            "OPEN",
+          classId_occurrenceDate: {
+            classId: classRecord.id,
+            occurrenceDate,
+          },
         },
+        select: attendanceSessionSelect,
       });
 
+    const existingSession = await findOccurrence();
 
-    if (existingOpenSession) {
+    if (existingSession) {
+      if (existingSession.status === "OPEN") {
+        return {
+          session: existingSession,
+          resumed: true,
+        };
+      }
+
       throw new AppError(
-        "An attendance session is already open for this class",
+        "Attendance has already been completed for this class occurrence",
         409
       );
     }
 
+    validateAttendanceStartWindow(classRecord, now);
 
-    // ----------------------------------------------
-    // Create attendance session
-    // ----------------------------------------------
-
-    const session =
-      await prisma.attendanceSession.create({
+    try {
+      const session = await prisma.attendanceSession.create({
         data: {
-          classId:
-            classRecord.id,
+          classId: classRecord.id,
+          occurrenceDate,
+          startedAt: now,
         },
-
-        select: {
-          id: true,
-          status: true,
-          startedAt: true,
-
-          class: {
-            select: {
-              id: true,
-              classCode: true,
-
-              course: {
-                select: {
-                  courseCode: true,
-                  courseName: true,
-                },
-              },
-
-              lecturer: {
-                select: {
-                  lecturerId: true,
-                  firstName: true,
-                  lastName: true,
-                },
-              },
-
-              academicTerm: {
-                select: {
-                  semester: true,
-                  year: true,
-                },
-              },
-
-              scheduleDays: true,
-              startTime: true,
-              endTime: true,
-              room: true,
-            },
-          },
-        },
+        select: attendanceSessionSelect,
       });
 
+      return {
+        session,
+        resumed: false,
+      };
+    } catch (error) {
+      if (getPrismaErrorCode(error) !== "P2002") {
+        throw error;
+      }
 
-    return session;
+      const concurrentSession = await findOccurrence();
+
+      if (concurrentSession?.status === "OPEN") {
+        return {
+          session: concurrentSession,
+          resumed: true,
+        };
+      }
+
+      throw new AppError(
+        "Attendance has already been completed for this class occurrence",
+        409
+      );
+    }
   };
 
 
@@ -393,6 +427,177 @@ export const markManualAttendanceService =
 
 
     return record;
+  };
+
+
+// ==================================================
+// CORRECT ATTENDANCE AFTER SESSION CLOSURE
+// ==================================================
+
+export const correctClosedAttendanceService =
+  async (
+    reader: AttendanceReader,
+    sessionId: string,
+    studentId: string,
+    data: CorrectAttendanceRequest
+  ) => {
+    const correctedByRole = reader.role;
+
+    if (correctedByRole === "STUDENT") {
+      throw new AppError(
+        "You are not authorized to correct attendance",
+        403
+      );
+    }
+
+    if (!attendanceStatuses.has(data.status)) {
+      throw new AppError(
+        "Attendance status must be PRESENT, ABSENT, or LATE",
+        400
+      );
+    }
+
+    const reason = data.reason?.trim();
+
+    if (!reason || reason.length < 3 || reason.length > 500) {
+      throw new AppError(
+        "Correction reason must be between 3 and 500 characters",
+        400
+      );
+    }
+
+    const session = await prisma.attendanceSession.findUnique({
+      where: {
+        id: sessionId,
+      },
+      select: {
+        id: true,
+        status: true,
+        class: {
+          select: {
+            lecturerId: true,
+          },
+        },
+      },
+    });
+
+    if (!session) {
+      throw new AppError(
+        "Attendance session not found",
+        404
+      );
+    }
+
+    if (
+      correctedByRole === "LECTURER" &&
+      session.class.lecturerId !== reader.userId
+    ) {
+      throw new AppError(
+        "You are not authorized to correct this attendance session",
+        403
+      );
+    }
+
+    if (session.status !== "CLOSED") {
+      throw new AppError(
+        "Use the regular attendance endpoint while the session is open",
+        400
+      );
+    }
+
+    const normalizedStudentId = studentId.trim().toUpperCase();
+
+    return prisma.$transaction(async (tx) => {
+      const currentRecord = await tx.attendanceRecord.findFirst({
+        where: {
+          sessionId: session.id,
+          student: {
+            studentId: normalizedStudentId,
+          },
+        },
+        select: {
+          id: true,
+          status: true,
+        },
+      });
+
+      if (!currentRecord) {
+        throw new AppError(
+          "Attendance record not found for this student and session",
+          404
+        );
+      }
+
+      if (currentRecord.status === data.status) {
+        throw new AppError(
+          `Attendance is already marked as ${data.status}`,
+          400
+        );
+      }
+
+      const correctedAt = new Date();
+      const correction = await tx.attendanceCorrection.create({
+        data: {
+          attendanceRecordId: currentRecord.id,
+          previousStatus: currentRecord.status,
+          newStatus: data.status,
+          correctedByUserId: reader.userId,
+          correctedByRole,
+          reason,
+          createdAt: correctedAt,
+        },
+      });
+
+      const updateResult = await tx.attendanceRecord.updateMany({
+        where: {
+          id: currentRecord.id,
+          status: currentRecord.status,
+        },
+        data: {
+          status: data.status,
+          method: "MANUAL",
+          markedAt: correctedAt,
+        },
+      });
+
+      if (updateResult.count !== 1) {
+        throw new AppError(
+          "Attendance was corrected by another request; reload and try again",
+          409
+        );
+      }
+
+      const record = await tx.attendanceRecord.findUnique({
+        where: {
+          id: currentRecord.id,
+        },
+        select: {
+          id: true,
+          status: true,
+          method: true,
+          markedAt: true,
+          student: {
+            select: {
+              studentId: true,
+              firstName: true,
+              lastName: true,
+            },
+          },
+        },
+      });
+
+      if (!record) {
+        throw new AppError(
+          "Attendance record not found",
+          404
+        );
+      }
+
+      return {
+        record,
+        correction,
+      };
+    });
   };
 
 
@@ -850,6 +1055,7 @@ export const closeAttendanceSessionService =
       select: {
         id: true,
         status: true,
+        occurrenceDate: true,
         startedAt: true,
         endedAt: true,
 
@@ -900,6 +1106,7 @@ export const getAttendanceSessionService =
         select: {
           id: true,
           status: true,
+          occurrenceDate: true,
           startedAt: true,
           endedAt: true,
 
@@ -931,6 +1138,21 @@ export const getAttendanceSessionService =
               status: true,
               method: true,
               markedAt: true,
+
+              corrections: {
+                select: {
+                  id: true,
+                  previousStatus: true,
+                  newStatus: true,
+                  correctedByUserId: true,
+                  correctedByRole: true,
+                  reason: true,
+                  createdAt: true,
+                },
+                orderBy: {
+                  createdAt: "asc",
+                },
+              },
 
               student: {
                 select: {
@@ -1037,6 +1259,7 @@ export const getMyAttendanceService =
         session: {
           select: {
             id: true,
+            occurrenceDate: true,
             startedAt: true,
             endedAt: true,
 
@@ -1092,6 +1315,7 @@ export const getMyAttendanceSessionsService =
       select: {
         id: true,
         status: true,
+        occurrenceDate: true,
         startedAt: true,
         endedAt: true,
 

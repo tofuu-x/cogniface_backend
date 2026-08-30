@@ -2,6 +2,7 @@ import { Router } from "express";
 
 import {
   createAttendanceSession,
+  correctClosedAttendance,
   markManualAttendance,
   closeAttendanceSession,
   getAttendanceSession,
@@ -69,6 +70,19 @@ router.patch(
     "LECTURER"
   ),
   markManualAttendance
+);
+
+
+// Correct attendance after session closure
+router.patch(
+  "/sessions/:sessionId/students/:studentId/corrections",
+  authenticate,
+  authorizeRoles(
+    "LECTURER",
+    "ADMIN",
+    "SUPER_ADMIN"
+  ),
+  correctClosedAttendance
 );
 
 

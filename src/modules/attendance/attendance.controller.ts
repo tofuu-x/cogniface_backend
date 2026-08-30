@@ -7,6 +7,7 @@ import { AppError } from "../../utils/appError.js";
 
 import {
   createAttendanceSessionService,
+  correctClosedAttendanceService,
   markManualAttendanceService,
   closeAttendanceSessionService,
   getAttendanceSessionService,
@@ -15,6 +16,7 @@ import {
 } from "./attendance.service.js";
 
 import type {
+  CorrectAttendanceRequest,
   CreateAttendanceSessionRequest,
   MarkManualAttendanceRequest,
 } from "./attendance.types.js";
@@ -42,20 +44,23 @@ export const createAttendanceSession =
     }
 
 
-    const session =
+    const result =
       await createAttendanceSessionService(
         req.user.userId,
         req.body
       );
 
 
-    return res.status(201).json({
+    return res.status(result.resumed ? 200 : 201).json({
       success: true,
 
       message:
-        "Attendance session started successfully",
+        result.resumed
+          ? "Existing attendance session resumed successfully"
+          : "Attendance session started successfully",
 
-      session,
+      session: result.session,
+      resumed: result.resumed,
     });
   };
 
@@ -101,6 +106,47 @@ export const markManualAttendance =
         "Attendance updated successfully",
 
       record,
+    });
+  };
+
+
+// --------------------------------------------------
+// POST-CLOSURE CORRECTION
+// --------------------------------------------------
+
+export const correctClosedAttendance =
+  async (
+    req: Request<
+      {
+        sessionId: string;
+        studentId: string;
+      },
+      {},
+      CorrectAttendanceRequest
+    >,
+    res: Response
+  ) => {
+    if (!req.user) {
+      throw new AppError(
+        "Authenticated user missing",
+        401
+      );
+    }
+
+    const result = await correctClosedAttendanceService(
+      {
+        userId: req.user.userId,
+        role: req.user.role,
+      },
+      req.params.sessionId,
+      req.params.studentId,
+      req.body
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Closed attendance corrected successfully",
+      ...result,
     });
   };
 

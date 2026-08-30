@@ -234,3 +234,60 @@ Requires a valid bearer token. The lecturer is identified from the authenticated
 ```
 
 `currentClasses` counts the lecturer's classes assigned to the term containing the current date. `totalEnrollments` counts only `ONGOING` enrollments in those classes. If no term contains the current date, both statistics are `0` and `currentTerm` is `null`. If the authenticated user has no lecturer record, the endpoint returns `404` with `Lecturer not found`.
+
+## Attendance session constraints and corrections
+
+Attendance occurrences use `ATTENDANCE_TIME_ZONE`, which defaults to `Australia/Sydney`. New sessions can start from `ATTENDANCE_START_EARLY_MINUTES` before the scheduled class start until `ATTENDANCE_END_GRACE_MINUTES` after the scheduled class end. Both allowances default to 15 minutes when omitted from the environment.
+
+### POST `/api/attendance/sessions`
+
+Role: `LECTURER`.
+
+Request body:
+
+```json
+{
+  "classId": "class-uuid"
+}
+```
+
+The lecturer must own the class. A new session can only be created on a scheduled class day, inside the academic term, and within the configured start window. Each class can have only one attendance session for each local `occurrenceDate`.
+
+When the occurrence already has an open session, the endpoint returns that session so the lecturer can continue it. It does not create another session, and resuming the existing session is allowed after the original start window on the same occurrence date. A closed occurrence cannot be replaced.
+
+- New session: `201` with `{ success, message, session, resumed: false }`.
+- Existing open session: `200` with `{ success, message, session, resumed: true }`.
+- Existing closed session: `409`.
+
+The returned session includes `occurrenceDate`, `startedAt`, `status`, and its class details.
+
+### PATCH `/api/attendance/sessions/:sessionId/students/:studentId`
+
+Role: `LECTURER`.
+
+This endpoint creates or updates manual attendance only while the session is `OPEN`. The lecturer must own the class, and `studentId` is the student's public ID. Allowed statuses are `PRESENT`, `ABSENT`, and `LATE`.
+
+### PATCH `/api/attendance/sessions/:sessionId/students/:studentId/corrections`
+
+Roles: `LECTURER`, `ADMIN`, `SUPER_ADMIN`.
+
+Lecturers can only correct attendance for their assigned classes. Admin and Super Admin accounts can correct any closed attendance session.
+
+Request body:
+
+```json
+{
+  "status": "PRESENT",
+  "reason": "Recognition service incorrectly marked the student absent"
+}
+```
+
+The session must be `CLOSED`. The status must be `PRESENT`, `ABSENT`, or `LATE`; the trimmed reason must contain 3–500 characters; and the requested status must differ from the current status.
+
+The response is `{ success, message, record, correction }`. The corrected record uses `method: "MANUAL"`. The immutable audit entry records `previousStatus`, `newStatus`, `correctedByUserId`, `correctedByRole`, `reason`, and `createdAt`. A concurrent stale correction returns `409` instead of overwriting a newer correction.
+
+### Attendance response additions
+
+- Session responses and attendance histories include `occurrenceDate`.
+- `GET /api/attendance/sessions/:sessionId` includes each record's chronological `corrections` audit history.
+- Closing a session still marks all unmarked enrolled students as `ABSENT` with method `SYSTEM` in the same transaction that closes the session.
