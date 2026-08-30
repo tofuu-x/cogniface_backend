@@ -92,12 +92,6 @@ enum AttendanceSessionStatus {
   CLOSED
 }
 
-enum AttendanceCorrectionActorRole {
-  LECTURER
-  ADMIN
-  SUPER_ADMIN
-}
-
 //TABLES
 
 model Admin {
@@ -297,24 +291,8 @@ model AttendanceRecord {
 
   markedAt DateTime @default(now())
 
-  corrections AttendanceCorrection[]
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@unique([sessionId, studentId])
-}
-
-model AttendanceCorrection {
-  id                 String                        @id @default(uuid())
-  attendanceRecordId String
-  attendanceRecord   AttendanceRecord              @relation(fields: [attendanceRecordId], references: [id], onDelete: Cascade)
-  previousStatus     AttendanceStatus
-  newStatus          AttendanceStatus
-  correctedByUserId  String
-  correctedByRole    AttendanceCorrectionActorRole
-  reason             String
-  createdAt          DateTime                      @default(now())
-
-  @@index([attendanceRecordId])
 }

@@ -10,7 +10,6 @@ export interface MarkManualAttendanceRequest {
 
 export interface CorrectAttendanceRequest {
   status: AttendanceStatus;
-  reason: string;
 }
 
 export interface AttendanceReader {

@@ -457,15 +457,6 @@ export const correctClosedAttendanceService =
       );
     }
 
-    const reason = data.reason?.trim();
-
-    if (!reason || reason.length < 3 || reason.length > 500) {
-      throw new AppError(
-        "Correction reason must be between 3 and 500 characters",
-        400
-      );
-    }
-
     const session = await prisma.attendanceSession.findUnique({
       where: {
         id: sessionId,
@@ -536,18 +527,6 @@ export const correctClosedAttendanceService =
       }
 
       const correctedAt = new Date();
-      const correction = await tx.attendanceCorrection.create({
-        data: {
-          attendanceRecordId: currentRecord.id,
-          previousStatus: currentRecord.status,
-          newStatus: data.status,
-          correctedByUserId: reader.userId,
-          correctedByRole,
-          reason,
-          createdAt: correctedAt,
-        },
-      });
-
       const updateResult = await tx.attendanceRecord.updateMany({
         where: {
           id: currentRecord.id,
@@ -595,7 +574,6 @@ export const correctClosedAttendanceService =
 
       return {
         record,
-        correction,
       };
     });
   };
@@ -1138,21 +1116,6 @@ export const getAttendanceSessionService =
               status: true,
               method: true,
               markedAt: true,
-
-              corrections: {
-                select: {
-                  id: true,
-                  previousStatus: true,
-                  newStatus: true,
-                  correctedByUserId: true,
-                  correctedByRole: true,
-                  reason: true,
-                  createdAt: true,
-                },
-                orderBy: {
-                  createdAt: "asc",
-                },
-              },
 
               student: {
                 select: {

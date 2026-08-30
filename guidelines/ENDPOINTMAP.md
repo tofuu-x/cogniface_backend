@@ -277,17 +277,15 @@ Request body:
 
 ```json
 {
-  "status": "PRESENT",
-  "reason": "Recognition service incorrectly marked the student absent"
+  "status": "PRESENT"
 }
 ```
 
-The session must be `CLOSED`. The status must be `PRESENT`, `ABSENT`, or `LATE`; the trimmed reason must contain 3–500 characters; and the requested status must differ from the current status.
+The session must be `CLOSED`. The status must be `PRESENT`, `ABSENT`, or `LATE`, and the requested status must differ from the current status. No reason is required.
 
-The response is `{ success, message, record, correction }`. The corrected record uses `method: "MANUAL"`. The immutable audit entry records `previousStatus`, `newStatus`, `correctedByUserId`, `correctedByRole`, `reason`, and `createdAt`. A concurrent stale correction returns `409` instead of overwriting a newer correction.
+The response is `{ success, message, record }`. The updated record uses `method: "MANUAL"`. A concurrent stale update returns `409` instead of overwriting a newer update.
 
 ### Attendance response additions
 
 - Session responses and attendance histories include `occurrenceDate`.
-- `GET /api/attendance/sessions/:sessionId` includes each record's chronological `corrections` audit history.
 - Closing a session still marks all unmarked enrolled students as `ABSENT` with method `SYSTEM` in the same transaction that closes the session.
