@@ -1,7 +1,8 @@
-import type {Request, Response} from 'express';
+import type {NextFunction, Request, Response} from 'express';
 import type { ChangePasswordRequest, LoginRequest } from './auth.types.js';
 import { AppError } from '../../utils/appError.js';
 import { changePassword, loginUser } from './auth.service.js';
+import { forgotPasswordService } from './password.service.js';
 
 
 //Login Controller
@@ -72,4 +73,19 @@ export const changeAuthenticatedUserPassword = async (
     message: "Password changed successfully",
   });
 };
+
+//For password reset
+export const forgotPassword = async (req: Request,res : Response, next: NextFunction) => {
+  try{
+    const {email} = req.body;
+
+    await forgotPasswordService(email);
+
+    return res.status(202).json({
+      message : "If an eligible account exists, a password link has been sent"
+    });
+  } catch(error){
+    next(error);
+  }
+}
 

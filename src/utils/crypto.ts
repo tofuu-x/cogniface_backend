@@ -11,12 +11,19 @@ export const generateRandomNumber = (min: number, max: number): number => {
   return crypto.randomInt(min, max);
 };
 
+//Hash Token
+export const hashToken = (
+  token : string
+) : string => {
+   return crypto.createHash("sha256").update(token).digest("hex");
+}
+
 
 //FOR PASSWORD TOKEN
-const generatePasswordToken = () => {
+export const generatePasswordToken = () => {
   const rawToken = crypto.randomBytes(32).toString("hex");
 
-  const tokenHash = crypto.createHash("sha256").update(rawToken).digest("hex");
+  const tokenHash = hashToken(rawToken); 
 
   return {
     rawToken,
