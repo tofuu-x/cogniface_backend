@@ -90,10 +90,10 @@ export const getAllLecturers = async(
 };
 
 export const sendLecturerPasswordResetEmail = async(req : Request , res : Response) => {
-  const lecturerId = req.params.lecturerId as string
+  const lecturerUserId = req.params.lecturerUserId as string
 
   await sendAdminTriggeredPasswordReset(
-    lecturerId,
+    lecturerUserId,
     "LECTURER",
     req.user!.userId
   )

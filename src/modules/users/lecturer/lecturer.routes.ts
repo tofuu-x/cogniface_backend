@@ -40,7 +40,7 @@ router.get(
 );
 
 router.post(
-  "/:lecturerId/password-reset",
+  "/:lecturerUserId/password-reset",
   authenticate,
   authorizeRoles("ADMIN", "SUPER_ADMIN"),
   sendLecturerPasswordResetEmail

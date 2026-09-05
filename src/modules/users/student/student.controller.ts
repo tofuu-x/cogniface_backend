@@ -106,10 +106,10 @@ export const sendStudentPasswordResetEmail = async (
   req: Request,
   res: Response
 ) => {
-  const studentId = req.params.studentId as string;
+  const studentUserId = req.params.studentUserId as string;
 
   await sendAdminTriggeredPasswordReset(
-    studentId,
+    studentUserId,
     "STUDENT",
     req.user!.userId
   );

@@ -56,7 +56,7 @@ router.patch(
 );
 
 router.post(
-  "/:studentId/password-reset",
+  "/:studentUserId/password-reset",
   authenticate,
   authorizeRoles("ADMIN", "SUPER_ADMIN"),
   sendStudentPasswordResetEmail
