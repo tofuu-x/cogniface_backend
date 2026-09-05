@@ -265,7 +265,7 @@ The returned session includes `occurrenceDate`, `startedAt`, `status`, and its c
 
 Role: `LECTURER`.
 
-This endpoint creates or updates manual attendance only while the session is `OPEN`. The lecturer must own the class, and `studentId` is the student's public ID. Allowed statuses are `PRESENT`, `ABSENT`, and `LATE`.
+This endpoint creates or updates manual attendance only while the session is `OPEN`. The lecturer must own the class, and `studentId` is the student's public ID. Allowed statuses are `PRESENT` and `ABSENT`.
 
 ### PATCH `/api/attendance/sessions/:sessionId/students/:studentId/corrections`
 
@@ -281,7 +281,7 @@ Request body:
 }
 ```
 
-The session must be `CLOSED`. The status must be `PRESENT`, `ABSENT`, or `LATE`, and the requested status must differ from the current status. No reason is required.
+The session must be `CLOSED`. The status must be `PRESENT` or `ABSENT`, and the requested status must differ from the current status. No reason is required.
 
 The response is `{ success, message, record }`. The updated record uses `method: "MANUAL"`. A concurrent stale update returns `409` instead of overwriting a newer update.
 

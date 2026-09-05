@@ -17,7 +17,6 @@ import {
 const attendanceStatuses = new Set([
   "PRESENT",
   "ABSENT",
-  "LATE",
 ]);
 
 const getPrismaErrorCode = (error: unknown) => {
@@ -237,6 +236,13 @@ export const markManualAttendanceService =
     data: MarkManualAttendanceRequest
   ) => {
 
+    if (!attendanceStatuses.has(data.status)) {
+      throw new AppError(
+        "Attendance status must be PRESENT or ABSENT",
+        400
+      );
+    }
+
     // ----------------------------------------------
     // Find attendance session
     // ----------------------------------------------
@@ -452,7 +458,7 @@ export const correctClosedAttendanceService =
 
     if (!attendanceStatuses.has(data.status)) {
       throw new AppError(
-        "Attendance status must be PRESENT, ABSENT, or LATE",
+        "Attendance status must be PRESENT or ABSENT",
         400
       );
     }
