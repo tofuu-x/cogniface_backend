@@ -10,8 +10,8 @@ const required = (key : string) : string => {
   return value;
 }
 
-const nonNegativeInteger = (key: string, defaultValue: number) => {
-  const value = Number(process.env[key] ?? defaultValue);
+const nonNegativeInteger = (key: string) => {
+  const value = Number(required(key));
 
   if (!Number.isInteger(value) || value < 0) {
     throw new Error(`${key} must be a non-negative integer`);
@@ -32,7 +32,7 @@ try {
 }
 
 const env = {
-  port : required("PORT"),
+  port : Number(required("PORT")),
   database_url : required("DEV_DATABASE_URL"),
   node_env : required("NODE_ENV"),
   client_origin : process.env.CLIENT_ORIGIN,
@@ -48,13 +48,22 @@ const env = {
   jwt_secret : required("JWT_SECRET"),
   attendance_time_zone: attendanceTimeZone,
   attendance_start_early_minutes: nonNegativeInteger(
-    "ATTENDANCE_START_EARLY_MINUTES",
-    15
+    "ATTENDANCE_START_EARLY_MINUTES"
   ),
   attendance_end_grace_minutes: nonNegativeInteger(
     "ATTENDANCE_END_GRACE_MINUTES",
-    15
   ),
+
+  emailUser: required("EMAIL_USER"),
+  emailPassword : required("EMAIL_PASSWORD"),
+
+  passwordSetupUrl: required("PASSWORD_SETUP_URL"),
+
+  welcomeTokenTtlMinutes: nonNegativeInteger("WELCOME_TOKEN_TTL_MINUTES"),
+
+  passwordResetTokenTtlMinutes: nonNegativeInteger("PASSWORD_RESET_TOKEN_TTL_MINUTES"),
+
+  passwordResetCooldownMinutes: nonNegativeInteger("PASSWORD_RESET_COOLDOWN_MINUTES")
 }
 
 export default env;

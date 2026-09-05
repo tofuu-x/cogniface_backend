@@ -1,10 +1,12 @@
-import crypto from "node:crypto";
-
 import prisma from "../../../db/prisma.client.js";
 
 import { AppError } from "../../../utils/appError.js";
 
 import { hashPassword } from "../../../utils/auth.js";
+import {
+  generateRandomNumber,
+  generateTemporaryPassword,
+} from "../../../utils/crypto.js";
 
 import type { CreateStudentRequest,
   UpdateStudentRequest,
@@ -19,7 +21,7 @@ const generateStudentId = async(
   let studentId: string;
 
   do {
-    const randomNumber = crypto.randomInt(10000,
+    const randomNumber = generateRandomNumber(10000,
       100000);
 
     studentId = `S${enrollmentYear}${randomNumber}`;
@@ -33,10 +35,6 @@ const generateStudentId = async(
 
   return studentId;
 }
-
-const generateTemporaryPassword = () : string => {
-  return crypto.randomBytes(12).toString("base64url");
-};
 
 //Create Student
 
@@ -544,5 +542,4 @@ export const getAllStudentsService = async () => {
 
   return students;
 };
-
 

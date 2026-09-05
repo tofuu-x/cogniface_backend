@@ -92,6 +92,17 @@ enum AttendanceSessionStatus {
   CLOSED
 }
 
+enum PasswordTokenUserType {
+  ADMIN
+  LECTURER
+  STUDENT
+}
+
+enum PasswordTokenPurpose {
+  WELCOME_SETUP
+  PASSWORD_RESET
+}
+
 //TABLES
 
 model Admin {
@@ -106,6 +117,8 @@ model Admin {
   accountStatus AccountStatus @default(PENDING_ACTIVATION)
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
+
+  authVersion Int @default(0)
 }
 
 //Student
@@ -130,6 +143,8 @@ model Student {
   faceRegistered Boolean       @default(false)
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
+
+  authVersion Int @default(0)
 }
 
 //Lecturer
@@ -147,7 +162,8 @@ model Lecturer {
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 
-  classes Class[]
+  classes     Class[]
+  authVersion Int     @default(0)
 }
 
 //Major
@@ -295,4 +311,26 @@ model AttendanceRecord {
   updatedAt DateTime @updatedAt
 
   @@unique([sessionId, studentId])
+}
+
+//FOR PASSWORD RESET PURPOSE
+model PasswordToken {
+  id        String @id @default(uuid())
+  tokenHash String @unique
+
+  userId   String
+  userType PasswordTokenUserType
+  purpose  PasswordTokenPurpose
+
+  expiresAt DateTime
+  usedAt    DateTime?
+
+  requestedByAdminId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, userType])
+  @@index([userId, userType, createdAt])
+  @@index([expiresAt])
 }

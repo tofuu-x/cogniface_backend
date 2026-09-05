@@ -1,9 +1,11 @@
 import prisma from "../../../db/prisma.client.js";
 
-import crypto from "node:crypto";
-
 import { AppError } from "../../../utils/appError.js";
 import { hashPassword } from "../../../utils/auth.js";
+import {
+  generateRandomNumber,
+  generateTemporaryPassword,
+} from "../../../utils/crypto.js";
 import { AccountStatus } from "../../../generated/prisma/enums.js";
 
 import type {
@@ -22,7 +24,7 @@ const generateLecturerId = async () : Promise<string> => {
   let existingLecturer;
 
   do {
-    const randomNumber = crypto.randomInt(100000, 999999);
+    const randomNumber = generateRandomNumber(100000, 999999);
 
     lecturerId = `L${randomNumber}`;
 
@@ -36,10 +38,6 @@ const generateLecturerId = async () : Promise<string> => {
   return lecturerId;
 }
 
-
-const generateTemporaryPassword = (): string => {
-  return crypto.randomBytes(12).toString("base64url");
-};
 
 export const createLecturerService = async (
   data: CreateLecturerRequest

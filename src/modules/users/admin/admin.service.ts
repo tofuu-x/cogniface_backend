@@ -1,5 +1,3 @@
-import crypto from "node:crypto";
-
 import prisma from "../../../db/prisma.client.js";
 
 import { AppError } from "../../../utils/appError.js";
@@ -7,6 +5,7 @@ import { AppError } from "../../../utils/appError.js";
 import { hashPassword } from "../../../utils/auth.js";
 
 import { AdminRole } from "../../../generated/prisma/enums.js";
+import { generateTemporaryPassword } from "../../../utils/crypto.js";
 
 import type {
   CreateAdminRequest,
@@ -14,12 +13,6 @@ import type {
   AdminReader,
   AdminResponse,
 } from "./admin.types.js";
-
-
-const generateTemporaryPassword = (): string => {
-  return crypto.randomBytes(12).toString("base64url");
-};
-
 
 // CREATE ADMIN
 // SUPER_ADMIN only
