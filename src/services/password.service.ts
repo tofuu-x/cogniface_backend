@@ -7,6 +7,7 @@ import {generatePasswordToken, hashToken} from "../utils/crypto.js";
 import { AppError } from "../utils/appError.js";
 import { sendPasswordResetEmail, sendWelcomeEmail } from "./email.service.js";
 import bcrypt from "bcryptjs";
+import { hashPassword } from "../utils/auth.js";
 
 interface IssuePasswordTokenInput {
   userId : string;
@@ -200,10 +201,10 @@ export const resetPasswordService = async (
 
   const passwordToken = await validatePasswordToken(rawToken);
 
-  const hashedPassword = await bcrypt.hash(newPassword , env.salt_rounds);
+  const hashedPassword = await hashPassword(newPassword);
 
   await prisma.$transaction(async(tx)=>{
-    if (passwordToken.userType == "ADMIN"){
+    if (passwordToken.userType === "ADMIN"){
       await tx.admin.update({
         where: {
           id: passwordToken.userId,
@@ -262,9 +263,7 @@ export const resetPasswordService = async (
         usedAt: new Date(),
       },
     });
-  })
-
-  
+  });
 }
 
 export const sendAdminTriggeredPasswordReset = async (

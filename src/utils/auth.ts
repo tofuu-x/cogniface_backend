@@ -21,6 +21,7 @@ export const hashPassword = async(
 export const generateJWT = (
   userId: string,
   role: "SUPER_ADMIN" | "ADMIN" | "LECTURER" | "STUDENT",
+  authVersion: number,
   publicIdentity?: {
     studentId?: string;
     lecturerId?: string;
@@ -30,6 +31,8 @@ export const generateJWT = (
     {
       userId,
       role,
+      authVersion,
+
       ...(publicIdentity?.studentId && {
         studentId: publicIdentity.studentId,
       }),
