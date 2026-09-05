@@ -11,6 +11,7 @@ import type {
   CreateStudentRequest,
   UpdateStudentRequest,
 } from "./student.types.js";
+import { sendAdminTriggeredPasswordReset } from "../../../services/password.service.js";
 
 
 export const createStudent = async (
@@ -100,4 +101,21 @@ export const getAllStudents = async (
     students,
   });
 };
+
+export const sendStudentPasswordResetEmail = async (
+  req: Request,
+  res: Response
+) => {
+  const studentId = req.params.studentId as string;
+
+  await sendAdminTriggeredPasswordReset(
+    studentId,
+    "STUDENT",
+    req.user!.userId
+  );
+
+  return res.status(200).json({
+    message: "Password reset email send successfully"
+  })
+}
 

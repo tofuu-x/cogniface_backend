@@ -14,6 +14,7 @@ import type {
   CreateAdminRequest,
   UpdateAdminRequest,
 } from "./admin.types.js";
+import { sendAdminTriggeredPasswordReset } from "../../../services/password.service.js";
 
 
 export const createAdmin = async (
@@ -112,3 +113,19 @@ export const updateAdmin = async (
     admin,
   });
 };
+
+export const sendAdminPasswordResetEmail = async(req: Request, res: Response) => {
+  const adminId = req.params.adminId as string;
+
+  await sendAdminTriggeredPasswordReset(
+    adminId,
+    "ADMIN",
+    req.user!.userId
+  );
+
+  return res.status(200).json({
+    message: "Password reset email sent successfully.",
+  });
+
+
+}

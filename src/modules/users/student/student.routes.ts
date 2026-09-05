@@ -6,7 +6,8 @@ import { authorizeRoles } from "../../../middlewares/authorizeRoles.middleware.j
 import { createStudent,
   updateStudent,
   getStudent,
-  getAllStudents
+  getAllStudents,
+  sendStudentPasswordResetEmail
  } from "./student.controller.js";
 
 const router = Router();
@@ -52,6 +53,13 @@ router.patch(
     "SUPER_ADMIN"
   ),
   updateStudent
+);
+
+router.post(
+  "/:studentId/password-reset",
+  authenticate,
+  authorizeRoles("ADMIN", "SUPER_ADMIN"),
+  sendStudentPasswordResetEmail
 );
 
 

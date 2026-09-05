@@ -15,6 +15,7 @@ import type {
   LecturerReader,
   UpdateLecturerRequest
 } from "./lecturer.types.js";
+import { sendPasswordAccessEmail } from "../../../services/password.service.js";
 
 
 
@@ -200,6 +201,10 @@ export const createLecturerService = async (
     },
   });
 
+  await sendPasswordAccessEmail({
+      user: lecturer,
+      userType: "LECTURER"
+    });
 
   return {
     ...lecturer,

@@ -13,6 +13,7 @@ import type {
   AdminReader,
   AdminResponse,
 } from "./admin.types.js";
+import { sendPasswordAccessEmail } from "../../../services/password.service.js";
 
 // CREATE ADMIN
 // SUPER_ADMIN only
@@ -148,6 +149,11 @@ export const createAdminService = async (
       createdAt: true,
       updatedAt: true,
     },
+  });
+
+  await sendPasswordAccessEmail({
+  user: admin,
+  userType: "ADMIN",
   });
 
   return admin;

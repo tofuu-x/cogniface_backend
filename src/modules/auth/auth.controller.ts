@@ -2,7 +2,7 @@ import type {NextFunction, Request, Response} from 'express';
 import type { ChangePasswordRequest, LoginRequest } from './auth.types.js';
 import { AppError } from '../../utils/appError.js';
 import { changePassword, loginUser } from './auth.service.js';
-import { forgotPasswordService } from './password.service.js';
+import { forgotPasswordService, resetPasswordService } from '../../services/password.service.js';
 
 
 //Login Controller
@@ -74,18 +74,27 @@ export const changeAuthenticatedUserPassword = async (
   });
 };
 
-//For password reset
-export const forgotPassword = async (req: Request,res : Response, next: NextFunction) => {
-  try{
-    const {email} = req.body;
+//For password reset email
+export const forgotPassword = async (req: Request,res : Response) => {
 
-    await forgotPasswordService(email);
+  const {email} = req.body;
 
-    return res.status(202).json({
-      message : "If an eligible account exists, a password link has been sent"
-    });
-  } catch(error){
-    next(error);
-  }
+  await forgotPasswordService(email);
+
+  return res.status(202).json({
+    message : "If an eligible account exists, a password link has been sent"
+  });
+  
+}
+
+//Token based
+export const resetPassword = async(req: Request, res: Response) => {
+  const {token, newPassword, confirmPassword} = req.body;
+
+  await resetPasswordService(token,newPassword,confirmPassword);
+
+  return res.status(200).json({
+    message: "Password updated successfully"
+  })
 }
 

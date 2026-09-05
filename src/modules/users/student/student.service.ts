@@ -7,6 +7,7 @@ import {
   generateRandomNumber,
   generateTemporaryPassword,
 } from "../../../utils/crypto.js";
+import { sendPasswordAccessEmail } from "../../../services/password.service.js";
 
 import type { CreateStudentRequest,
   UpdateStudentRequest,
@@ -217,6 +218,11 @@ export const createStudentService = async(
       faceRegistered: true,
       createdAt: true,
     },
+  });
+
+  await sendPasswordAccessEmail({
+    user: student,
+    userType: "STUDENT"
   });
 
   return student;

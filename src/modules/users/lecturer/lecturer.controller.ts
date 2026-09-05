@@ -11,6 +11,7 @@ import type {
   CreateLecturerRequest,
   UpdateLecturerRequest
 } from "./lecturer.types.js";
+import { sendAdminTriggeredPasswordReset } from "../../../services/password.service.js";
 
 
 export const createLecturer = async (
@@ -87,3 +88,17 @@ export const getAllLecturers = async(
     lecturers,
   });
 };
+
+export const sendLecturerPasswordResetEmail = async(req : Request , res : Response) => {
+  const lecturerId = req.params.lecturerId as string
+
+  await sendAdminTriggeredPasswordReset(
+    lecturerId,
+    "LECTURER",
+    req.user!.userId
+  )
+
+  return res.status(200).json({
+    message: "Password reset email sent successfully.",
+  });
+}

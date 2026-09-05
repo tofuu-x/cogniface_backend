@@ -5,6 +5,7 @@ import {
   createLecturer,
   getAllLecturers,
   getLecturer,
+  sendLecturerPasswordResetEmail,
   updateLecturer,
 } from "./lecturer.controller.js";
 
@@ -36,6 +37,13 @@ router.get(
   authenticate,
   authorizeRoles("ADMIN", "SUPER_ADMIN"),
   getAllLecturers
+);
+
+router.post(
+  "/:lecturerId/password-reset",
+  authenticate,
+  authorizeRoles("ADMIN", "SUPER_ADMIN"),
+  sendLecturerPasswordResetEmail
 );
 
 export default router;

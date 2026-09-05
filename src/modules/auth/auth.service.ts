@@ -45,6 +45,7 @@ export const loginUser = async (data : LoginRequest) : Promise<LoginResponse> =>
   const token = generateJWT(
     user.id,
     role,
+    user.authVersion,
     role === "STUDENT"
       ? { studentId: user.studentId }
       : role === "LECTURER"

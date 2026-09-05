@@ -4,6 +4,7 @@ import {
   createAdmin,
   getAdmin,
   getAllAdmins,
+  sendAdminPasswordResetEmail,
   updateAdmin,
 } from "./admin.controller.js";
 
@@ -63,6 +64,13 @@ router.patch(
     "SUPER_ADMIN"
   ),
   updateAdmin
+);
+
+router.post(
+  "/:adminId/password-reset",
+  authenticate,
+  authorizeRoles("SUPER_ADMIN"),
+  sendAdminPasswordResetEmail
 );
 
 
