@@ -137,6 +137,7 @@ model Student {
   enrollments Enrollment[]
 
   attendanceRecords AttendanceRecord[]
+  faceEmbedding     FaceEmbedding?
 
   accountStatus  AccountStatus @default(PENDING_ACTIVATION)
   faceRegistered Boolean       @default(false)
@@ -144,6 +145,16 @@ model Student {
   updatedAt      DateTime      @updatedAt
 
   authVersion Int @default(0)
+}
+
+model FaceEmbedding {
+  studentId String  @id
+  student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  encryptedEmbedding Bytes
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 //Lecturer

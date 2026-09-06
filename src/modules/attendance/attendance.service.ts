@@ -13,6 +13,7 @@ import {
   toOccurrenceDate,
   validateAttendanceStartWindow,
 } from "./attendanceTime.js";
+import { recognizeFrameWithInference } from "../face/face.client.js";
 
 const attendanceStatuses = new Set([
   "PRESENT",
@@ -1322,3 +1323,139 @@ export const getMyAttendanceSessionsService =
       },
     });
   };
+
+
+// ==================================================
+// AUTOMATED FACIAL-RECOGNITION FRAME
+// ==================================================
+
+export const processRecognitionFrameService = async (
+  lecturerUserId: string,
+  sessionId: string,
+  frame: Express.Multer.File,
+) => {
+  const session = await prisma.attendanceSession.findUnique({
+    where: { id: sessionId },
+    select: {
+      id: true,
+      status: true,
+      class: {
+        select: {
+          id: true,
+          lecturerId: true,
+          enrollments: {
+            where: { status: "ONGOING" },
+            select: {
+              student: {
+                select: {
+                  id: true,
+                  studentId: true,
+                  firstName: true,
+                  lastName: true,
+                  faceRegistered: true,
+                  faceEmbedding: { select: { encryptedEmbedding: true } },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+  if (!session) throw new AppError("Attendance session not found", 404);
+  if (session.class.lecturerId !== lecturerUserId) {
+    throw new AppError("You are not authorized to manage this attendance session", 403);
+  }
+  if (session.status !== "OPEN") throw new AppError("This attendance session is closed", 400);
+
+  const studentsByInternalId = new Map(
+    session.class.enrollments.map(({ student }) => [student.id, student]),
+  );
+  const roster = session.class.enrollments
+    .map(({ student }) => student)
+    .filter((student) => student.faceRegistered && student.faceEmbedding)
+    .map((student) => ({
+      studentId: student.id,
+      studentName: `${student.firstName} ${student.lastName}`,
+      encryptedEmbedding: Buffer.from(student.faceEmbedding!.encryptedEmbedding).toString("utf8"),
+    }));
+
+  const inference = await recognizeFrameWithInference(frame, roster);
+  const matchedIds = [...new Set(
+    inference.matches
+      .map((match) => match.studentId)
+      .filter((id) => studentsByInternalId.has(id)),
+  )];
+
+  const newlyMarkedIds = await prisma.$transaction(async (tx) => {
+    const currentSession = await tx.attendanceSession.findUnique({
+      where: { id: sessionId },
+      select: { status: true, class: { select: { id: true, lecturerId: true } } },
+    });
+    if (!currentSession || currentSession.status !== "OPEN") {
+      throw new AppError("This attendance session is closed", 409);
+    }
+    if (currentSession.class.lecturerId !== lecturerUserId) {
+      throw new AppError("You are not authorized to manage this attendance session", 403);
+    }
+
+    const validEnrollments = await tx.enrollment.findMany({
+      where: {
+        classId: currentSession.class.id,
+        studentId: { in: matchedIds },
+        status: "ONGOING",
+      },
+      select: { studentId: true },
+    });
+    const validIds = validEnrollments.map((item) => item.studentId);
+    const existing = await tx.attendanceRecord.findMany({
+      where: { sessionId, studentId: { in: validIds } },
+      select: { studentId: true },
+    });
+    const existingIds = new Set(existing.map((item) => item.studentId));
+    const missingIds = validIds.filter((id) => !existingIds.has(id));
+    if (missingIds.length) {
+      const created = await tx.attendanceRecord.createManyAndReturn({
+        data: missingIds.map((studentId) => ({
+          sessionId,
+          studentId,
+          status: "PRESENT" as const,
+          method: "FACIAL_RECOGNITION" as const,
+        })),
+        skipDuplicates: true,
+        select: { studentId: true },
+      });
+      return created.map((record) => record.studentId);
+    }
+    return [];
+  });
+
+  const newlyMarked = newlyMarkedIds.length
+    ? await prisma.attendanceRecord.findMany({
+        where: { sessionId, studentId: { in: newlyMarkedIds } },
+        select: {
+          id: true,
+          status: true,
+          method: true,
+          markedAt: true,
+          student: { select: { studentId: true, firstName: true, lastName: true } },
+        },
+      })
+    : [];
+
+  return {
+    frame: inference.frame,
+    facesDetected: inference.facesDetected,
+    processingTimeMs: inference.processingTimeMs,
+    matches: inference.matches.flatMap((match) => {
+      const student = studentsByInternalId.get(match.studentId);
+      return student ? [{
+        studentId: student.studentId,
+        studentName: `${student.firstName} ${student.lastName}`,
+        distance: match.distance,
+        box: match.box,
+      }] : [];
+    }),
+    newlyMarked,
+  };
+};

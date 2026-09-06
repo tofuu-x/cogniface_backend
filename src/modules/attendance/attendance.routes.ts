@@ -8,7 +8,9 @@ import {
   getAttendanceSession,
   getMyAttendance,
   getMyAttendanceSessions,
+  processRecognitionFrame,
 } from "./attendance.controller.js";
+import { uploadRecognitionFrame } from "../face/face.upload.js";
 
 import {
   authenticate,
@@ -59,6 +61,14 @@ router.post(
     "LECTURER"
   ),
   createAttendanceSession
+);
+
+router.post(
+  "/sessions/:sessionId/frames",
+  authenticate,
+  authorizeRoles("LECTURER"),
+  uploadRecognitionFrame,
+  processRecognitionFrame,
 );
 
 

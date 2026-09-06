@@ -63,7 +63,11 @@ const env = {
 
   passwordResetTokenTtlMinutes: nonNegativeInteger("PASSWORD_RESET_TOKEN_TTL_MINUTES"),
 
-  passwordResetCooldownMinutes: nonNegativeInteger("PASSWORD_RESET_COOLDOWN_MINUTES")
+  passwordResetCooldownMinutes: nonNegativeInteger("PASSWORD_RESET_COOLDOWN_MINUTES"),
+
+  face_service_url: required("FACE_SERVICE_URL"),
+  face_service_token: required("FACE_SERVICE_TOKEN"),
+  face_service_timeout_ms: Number(required("FACE_SERVICE_TIMEOUT_MS")),
 }
 
 export default env;

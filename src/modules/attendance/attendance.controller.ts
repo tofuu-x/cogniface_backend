@@ -13,6 +13,7 @@ import {
   getAttendanceSessionService,
   getMyAttendanceService,
   getMyAttendanceSessionsService,
+  processRecognitionFrameService,
 } from "./attendance.service.js";
 
 import type {
@@ -297,3 +298,18 @@ export const getMyAttendanceSessions =
       sessions,
     });
   };
+
+
+export const processRecognitionFrame = async (
+  req: Request<{ sessionId: string }>,
+  res: Response,
+) => {
+  if (!req.user) throw new AppError("Authenticated user missing", 401);
+  if (!req.file) throw new AppError("A JPEG frame is required", 400);
+  const result = await processRecognitionFrameService(
+    req.user.userId,
+    req.params.sessionId,
+    req.file,
+  );
+  return res.status(200).json({ success: true, ...result });
+};
