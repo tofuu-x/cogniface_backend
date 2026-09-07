@@ -8,8 +8,14 @@ export interface MarkManualAttendanceRequest {
   status: AttendanceStatus;
 }
 
-export interface CorrectAttendanceRequest {
+export interface BatchAttendanceCorrection {
+  studentId: string;
+  expectedStatus: AttendanceStatus;
   status: AttendanceStatus;
+}
+
+export interface BatchCorrectAttendanceRequest {
+  corrections: BatchAttendanceCorrection[];
 }
 
 export interface AttendanceReader {

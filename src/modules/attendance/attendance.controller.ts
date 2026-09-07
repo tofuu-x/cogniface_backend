@@ -7,7 +7,7 @@ import { AppError } from "../../utils/appError.js";
 
 import {
   createAttendanceSessionService,
-  correctClosedAttendanceService,
+  batchCorrectClosedAttendanceService,
   markManualAttendanceService,
   closeAttendanceSessionService,
   getAttendanceSessionService,
@@ -17,7 +17,7 @@ import {
 } from "./attendance.service.js";
 
 import type {
-  CorrectAttendanceRequest,
+  BatchCorrectAttendanceRequest,
   CreateAttendanceSessionRequest,
   MarkManualAttendanceRequest,
 } from "./attendance.types.js";
@@ -115,15 +115,14 @@ export const markManualAttendance =
 // POST-CLOSURE CORRECTION
 // --------------------------------------------------
 
-export const correctClosedAttendance =
+export const batchCorrectClosedAttendance =
   async (
     req: Request<
       {
         sessionId: string;
-        studentId: string;
       },
       {},
-      CorrectAttendanceRequest
+      BatchCorrectAttendanceRequest
     >,
     res: Response
   ) => {
@@ -134,20 +133,19 @@ export const correctClosedAttendance =
       );
     }
 
-    const result = await correctClosedAttendanceService(
+    const records = await batchCorrectClosedAttendanceService(
       {
         userId: req.user.userId,
         role: req.user.role,
       },
       req.params.sessionId,
-      req.params.studentId,
       req.body
     );
 
     return res.status(200).json({
       success: true,
-      message: "Closed attendance corrected successfully",
-      ...result,
+      message: "Closed attendance corrections saved successfully",
+      records,
     });
   };
 

@@ -4,7 +4,7 @@ import { AppError } from "../../utils/appError.js";
 
 import type {
   AttendanceReader,
-  CorrectAttendanceRequest,
+  BatchCorrectAttendanceRequest,
   CreateAttendanceSessionRequest,
   MarkManualAttendanceRequest,
 } from "./attendance.types.js";
@@ -441,12 +441,11 @@ export const markManualAttendanceService =
 // CORRECT ATTENDANCE AFTER SESSION CLOSURE
 // ==================================================
 
-export const correctClosedAttendanceService =
+export const batchCorrectClosedAttendanceService =
   async (
     reader: AttendanceReader,
     sessionId: string,
-    studentId: string,
-    data: CorrectAttendanceRequest
+    data: BatchCorrectAttendanceRequest
   ) => {
     const correctedByRole = reader.role;
 
@@ -457,9 +456,57 @@ export const correctClosedAttendanceService =
       );
     }
 
-    if (!attendanceStatuses.has(data.status)) {
+    if (!data || !Array.isArray(data.corrections) || data.corrections.length === 0) {
       throw new AppError(
-        "Attendance status must be PRESENT or ABSENT",
+        "At least one attendance correction is required",
+        400
+      );
+    }
+
+    const corrections = data.corrections.map((correction) => {
+      if (
+        !correction ||
+        typeof correction.studentId !== "string" ||
+        correction.studentId.trim().length === 0
+      ) {
+        throw new AppError(
+          "Each correction must include a student ID",
+          400
+        );
+      }
+
+      if (
+        !attendanceStatuses.has(correction.expectedStatus) ||
+        !attendanceStatuses.has(correction.status)
+      ) {
+        throw new AppError(
+          "Attendance statuses must be PRESENT or ABSENT",
+          400
+        );
+      }
+
+      if (correction.expectedStatus === correction.status) {
+        throw new AppError(
+          "A corrected status must differ from its expected status",
+          400,
+          { studentId: correction.studentId }
+        );
+      }
+
+      return {
+        studentId: correction.studentId.trim().toUpperCase(),
+        expectedStatus: correction.expectedStatus,
+        status: correction.status,
+      };
+    });
+
+    const uniqueStudentIds = new Set(
+      corrections.map((correction) => correction.studentId)
+    );
+
+    if (uniqueStudentIds.size !== corrections.length) {
+      throw new AppError(
+        "Each student may only appear once in a correction batch",
         400
       );
     }
@@ -503,59 +550,84 @@ export const correctClosedAttendanceService =
       );
     }
 
-    const normalizedStudentId = studentId.trim().toUpperCase();
-
     return prisma.$transaction(async (tx) => {
-      const currentRecord = await tx.attendanceRecord.findFirst({
+      const currentRecords = await tx.attendanceRecord.findMany({
         where: {
           sessionId: session.id,
           student: {
-            studentId: normalizedStudentId,
+            studentId: {
+              in: [...uniqueStudentIds],
+            },
           },
         },
         select: {
           id: true,
           status: true,
+          student: {
+            select: {
+              studentId: true,
+            },
+          },
         },
       });
 
-      if (!currentRecord) {
-        throw new AppError(
-          "Attendance record not found for this student and session",
-          404
-        );
-      }
+      const recordsByStudentId = new Map(
+        currentRecords.map((record) => [record.student.studentId, record])
+      );
 
-      if (currentRecord.status === data.status) {
-        throw new AppError(
-          `Attendance is already marked as ${data.status}`,
-          400
-        );
+      for (const correction of corrections) {
+        const currentRecord = recordsByStudentId.get(correction.studentId);
+
+        if (!currentRecord) {
+          throw new AppError(
+            "Attendance record not found for a submitted student and session",
+            404,
+            { studentId: correction.studentId }
+          );
+        }
+
+        if (currentRecord.status !== correction.expectedStatus) {
+          throw new AppError(
+            "Attendance changed since it was loaded; reload and try again",
+            409,
+            {
+              studentId: correction.studentId,
+              expectedStatus: correction.expectedStatus,
+              actualStatus: currentRecord.status,
+            }
+          );
+        }
       }
 
       const correctedAt = new Date();
-      const updateResult = await tx.attendanceRecord.updateMany({
-        where: {
-          id: currentRecord.id,
-          status: currentRecord.status,
-        },
-        data: {
-          status: data.status,
-          method: "MANUAL",
-          markedAt: correctedAt,
-        },
-      });
+      for (const correction of corrections) {
+        const currentRecord = recordsByStudentId.get(correction.studentId)!;
+        const updateResult = await tx.attendanceRecord.updateMany({
+          where: {
+            id: currentRecord.id,
+            status: correction.expectedStatus,
+          },
+          data: {
+            status: correction.status,
+            method: "MANUAL",
+            markedAt: correctedAt,
+          },
+        });
 
-      if (updateResult.count !== 1) {
-        throw new AppError(
-          "Attendance was corrected by another request; reload and try again",
-          409
-        );
+        if (updateResult.count !== 1) {
+          throw new AppError(
+            "Attendance changed while corrections were being saved; reload and try again",
+            409,
+            { studentId: correction.studentId }
+          );
+        }
       }
 
-      const record = await tx.attendanceRecord.findUnique({
+      const updatedRecords = await tx.attendanceRecord.findMany({
         where: {
-          id: currentRecord.id,
+          id: {
+            in: currentRecords.map((record) => record.id),
+          },
         },
         select: {
           id: true,
@@ -572,16 +644,13 @@ export const correctClosedAttendanceService =
         },
       });
 
-      if (!record) {
-        throw new AppError(
-          "Attendance record not found",
-          404
-        );
-      }
+      const updatedRecordsByStudentId = new Map(
+        updatedRecords.map((record) => [record.student.studentId, record])
+      );
 
-      return {
-        record,
-      };
+      return corrections.map(
+        (correction) => updatedRecordsByStudentId.get(correction.studentId)!
+      );
     });
   };
 

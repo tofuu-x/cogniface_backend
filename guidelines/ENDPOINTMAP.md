@@ -267,7 +267,7 @@ Role: `LECTURER`.
 
 This endpoint creates or updates manual attendance only while the session is `OPEN`. The lecturer must own the class, and `studentId` is the student's public ID. Allowed statuses are `PRESENT` and `ABSENT`.
 
-### PATCH `/api/attendance/sessions/:sessionId/students/:studentId/corrections`
+### PATCH `/api/attendance/sessions/:sessionId/corrections`
 
 Roles: `LECTURER`, `ADMIN`, `SUPER_ADMIN`.
 
@@ -277,13 +277,19 @@ Request body:
 
 ```json
 {
-  "status": "PRESENT"
+  "corrections": [
+    {
+      "studentId": "STU001",
+      "expectedStatus": "ABSENT",
+      "status": "PRESENT"
+    }
+  ]
 }
 ```
 
-The session must be `CLOSED`. The status must be `PRESENT` or `ABSENT`, and the requested status must differ from the current status. No reason is required.
+The session must be `CLOSED`. The batch must contain at least one correction, each student may appear only once, and statuses must be `PRESENT` or `ABSENT`. Each requested status must differ from `expectedStatus`.
 
-The response is `{ success, message, record }`. The updated record uses `method: "MANUAL"`. A concurrent stale update returns `409` instead of overwriting a newer update.
+The response is `{ success, message, records }`, with records ordered like the request. All records are updated atomically with `method: "MANUAL"` and the same correction timestamp. If any record is invalid, missing, or no longer matches `expectedStatus`, the whole batch is rejected; stale data returns `409`.
 
 ### Attendance response additions
 
