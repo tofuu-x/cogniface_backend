@@ -2,7 +2,11 @@ import type { Request, Response } from "express";
 
 import { AppError } from "../../utils/appError.js";
 
-import { getAdminDashboardService, getLecturerDashboardService } from "./dashboard.service.js";
+import {
+  getAdminDashboardService,
+  getLecturerDashboardService,
+  getStudentDashboardService,
+} from "./dashboard.service.js";
 
 //Admin Dashboard
 export const getAdminDashboard = async (
@@ -30,6 +34,20 @@ export const getLecturerDashboard = async (
   const dashboard = await getLecturerDashboardService(
     req.user.userId
   );
+
+  res.status(200).json({
+    success: true,
+    dashboard,
+  });
+};
+
+// Student Dashboard
+export const getStudentDashboard = async (req: Request, res: Response) => {
+  if (!req.user) {
+    throw new AppError("Authentication required", 401);
+  }
+
+  const dashboard = await getStudentDashboardService(req.user.userId);
 
   res.status(200).json({
     success: true,
