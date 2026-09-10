@@ -3,9 +3,11 @@ import { authenticate } from "../../../middlewares/auth.middleware.js";
 import { authorizeRoles } from "../../../middlewares/authorizeRoles.middleware.js";
 import {
   createLecturer,
+  deleteLecturer,
   getAllLecturers,
   getLecturer,
   sendLecturerPasswordResetEmail,
+  setLecturerAccountStatus,
   updateLecturer,
 } from "./lecturer.controller.js";
 
@@ -30,6 +32,20 @@ router.patch(
   authenticate,
   authorizeRoles("ADMIN", "SUPER_ADMIN"),
   updateLecturer
+);
+
+router.patch(
+  "/:lecturerId/status",
+  authenticate,
+  authorizeRoles("ADMIN", "SUPER_ADMIN"),
+  setLecturerAccountStatus
+);
+
+router.delete(
+  "/:lecturerId",
+  authenticate,
+  authorizeRoles("ADMIN", "SUPER_ADMIN"),
+  deleteLecturer
 );
 
 router.get(

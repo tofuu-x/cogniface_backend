@@ -231,6 +231,7 @@ export const getLecturerService = async (
       department: true,
       accountStatus: true,
       createdAt: true,
+      updatedAt: true,
     },
   });
 
@@ -365,4 +366,79 @@ export const getAllLecturersService = async () => {
   });
 
   return lecturers;
+};
+
+export const deleteLecturerService = async (
+  lecturerId: string
+) => {
+  const lecturer = await prisma.lecturer.findUnique({
+    where: {
+      lecturerId,
+    },
+    select: {
+      id: true,
+      lecturerId: true,
+      firstName: true,
+      lastName: true,
+    },
+  });
+
+  if (!lecturer) {
+    throw new AppError("Lecturer not found", 404);
+  }
+
+  await prisma.$transaction([
+    prisma.passwordToken.deleteMany({
+      where: {
+        userId: lecturer.id,
+        userType: "LECTURER",
+      },
+    }),
+    prisma.lecturer.delete({
+      where: {
+        id: lecturer.id,
+      },
+    }),
+  ]);
+
+  return lecturer;
+};
+
+export const setLecturerAccountStatusService = async (
+  lecturerId: string,
+  accountStatus: unknown
+) => {
+  if (accountStatus !== "ACTIVE" && accountStatus !== "INACTIVE") {
+    throw new AppError("Account status must be ACTIVE or INACTIVE", 400);
+  }
+
+  const lecturer = await prisma.lecturer.findUnique({
+    where: {
+      lecturerId,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!lecturer) {
+    throw new AppError("Lecturer not found", 404);
+  }
+
+  return prisma.lecturer.update({
+    where: {
+      id: lecturer.id,
+    },
+    data: {
+      accountStatus,
+      authVersion: {
+        increment: 1,
+      },
+    },
+    select: {
+      id: true,
+      lecturerId: true,
+      accountStatus: true,
+    },
+  });
 };

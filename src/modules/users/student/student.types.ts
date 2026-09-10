@@ -53,6 +53,7 @@ export interface StudentPrivateResponse
   accountStatus: AccountStatus;
   faceRegistered: boolean;
   createdAt: Date;
+  updatedAt: Date;
 }
 
 export type GetStudentResponse =

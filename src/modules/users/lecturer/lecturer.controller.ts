@@ -2,8 +2,10 @@ import type { Request, Response } from "express";
 
 import {
   createLecturerService,
+  deleteLecturerService,
   getAllLecturersService,
   getLecturerService,
+  setLecturerAccountStatusService,
   updateLecturerService,
 } from "./lecturer.service.js";
 
@@ -86,6 +88,37 @@ export const getAllLecturers = async(
     success: true,
     count: lecturers.length,
     lecturers,
+  });
+};
+
+export const deleteLecturer = async (
+  req: Request<{ lecturerId: string }>,
+  res: Response
+) => {
+  const lecturer = await deleteLecturerService(
+    req.params.lecturerId
+  );
+
+  return res.status(200).json({
+    success: true,
+    message: "Lecturer deleted successfully",
+    lecturer,
+  });
+};
+
+export const setLecturerAccountStatus = async (
+  req: Request,
+  res: Response
+) => {
+  const lecturer = await setLecturerAccountStatusService(
+    req.params.lecturerId as string,
+    req.body.accountStatus
+  );
+
+  return res.status(200).json({
+    success: true,
+    message: `Lecturer account ${lecturer.accountStatus === "ACTIVE" ? "activated" : "deactivated"} successfully`,
+    lecturer,
   });
 };
 

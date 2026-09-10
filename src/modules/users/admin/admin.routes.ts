@@ -2,9 +2,11 @@ import { Router } from "express";
 
 import {
   createAdmin,
+  deleteAdmin,
   getAdmin,
   getAllAdmins,
   sendAdminPasswordResetEmail,
+  setAdminAccountStatus,
   updateAdmin,
 } from "./admin.controller.js";
 
@@ -64,6 +66,24 @@ router.patch(
     "SUPER_ADMIN"
   ),
   updateAdmin
+);
+
+router.patch(
+  "/:adminId/status",
+  authenticate,
+  authorizeRoles(
+    "SUPER_ADMIN"
+  ),
+  setAdminAccountStatus
+);
+
+router.delete(
+  "/:adminId",
+  authenticate,
+  authorizeRoles(
+    "SUPER_ADMIN"
+  ),
+  deleteAdmin
 );
 
 router.post(

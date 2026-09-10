@@ -2,6 +2,8 @@ import type { Request, Response } from "express";
 
 import {
   createStudentService,
+  deleteStudentService,
+  setStudentAccountStatusService,
   updateStudentService,
   getStudentService,
   getAllStudentsService,
@@ -102,6 +104,37 @@ export const getAllStudents = async (
   });
 };
 
+export const deleteStudent = async (
+  req: Request<{ studentId: string }>,
+  res: Response
+) => {
+  const student = await deleteStudentService(
+    req.params.studentId
+  );
+
+  return res.status(200).json({
+    success: true,
+    message: "Student deleted successfully",
+    student,
+  });
+};
+
+export const setStudentAccountStatus = async (
+  req: Request,
+  res: Response
+) => {
+  const student = await setStudentAccountStatusService(
+    req.params.studentId as string,
+    req.body.accountStatus
+  );
+
+  return res.status(200).json({
+    success: true,
+    message: `Student account ${student.accountStatus === "ACTIVE" ? "activated" : "deactivated"} successfully`,
+    student,
+  });
+};
+
 export const sendStudentPasswordResetEmail = async (
   req: Request,
   res: Response
@@ -118,4 +151,3 @@ export const sendStudentPasswordResetEmail = async (
     message: "Password reset email send successfully"
   })
 }
-

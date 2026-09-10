@@ -477,6 +477,7 @@ export const getStudentService = async (
         accountStatus: true,
         faceRegistered: true,
         createdAt: true,
+        updatedAt: true,
       },
     });
 
@@ -549,3 +550,77 @@ export const getAllStudentsService = async () => {
   return students;
 };
 
+export const deleteStudentService = async (
+  studentId: string
+) => {
+  const student = await prisma.student.findUnique({
+    where: {
+      studentId,
+    },
+    select: {
+      id: true,
+      studentId: true,
+      firstName: true,
+      lastName: true,
+    },
+  });
+
+  if (!student) {
+    throw new AppError("Student not found", 404);
+  }
+
+  await prisma.$transaction([
+    prisma.passwordToken.deleteMany({
+      where: {
+        userId: student.id,
+        userType: "STUDENT",
+      },
+    }),
+    prisma.student.delete({
+      where: {
+        id: student.id,
+      },
+    }),
+  ]);
+
+  return student;
+};
+
+export const setStudentAccountStatusService = async (
+  studentId: string,
+  accountStatus: unknown
+) => {
+  if (accountStatus !== "ACTIVE" && accountStatus !== "INACTIVE") {
+    throw new AppError("Account status must be ACTIVE or INACTIVE", 400);
+  }
+
+  const student = await prisma.student.findUnique({
+    where: {
+      studentId,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!student) {
+    throw new AppError("Student not found", 404);
+  }
+
+  return prisma.student.update({
+    where: {
+      id: student.id,
+    },
+    data: {
+      accountStatus,
+      authVersion: {
+        increment: 1,
+      },
+    },
+    select: {
+      id: true,
+      studentId: true,
+      accountStatus: true,
+    },
+  });
+};

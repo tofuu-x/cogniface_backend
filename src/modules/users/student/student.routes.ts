@@ -4,6 +4,8 @@ import { authenticate } from "../../../middlewares/auth.middleware.js";
 import { authorizeRoles } from "../../../middlewares/authorizeRoles.middleware.js";
 
 import { createStudent,
+  deleteStudent,
+  setStudentAccountStatus,
   updateStudent,
   getStudent,
   getAllStudents,
@@ -53,6 +55,26 @@ router.patch(
     "SUPER_ADMIN"
   ),
   updateStudent
+);
+
+router.patch(
+  "/:studentId/status",
+  authenticate,
+  authorizeRoles(
+    "ADMIN",
+    "SUPER_ADMIN"
+  ),
+  setStudentAccountStatus
+);
+
+router.delete(
+  "/:studentId",
+  authenticate,
+  authorizeRoles(
+    "ADMIN",
+    "SUPER_ADMIN"
+  ),
+  deleteStudent
 );
 
 router.post(

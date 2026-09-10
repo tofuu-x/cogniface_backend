@@ -5,8 +5,10 @@ import type {
 
 import {
   createAdminService,
+  deleteAdminService,
   getAdminService,
   getAllAdminsService,
+  setAdminAccountStatusService,
   updateAdminService,
 } from "./admin.service.js";
 
@@ -110,6 +112,37 @@ export const updateAdmin = async (
     success: true,
     message:
       "Admin updated successfully",
+    admin,
+  });
+};
+
+export const deleteAdmin = async (
+  req: Request<{ adminId: string }>,
+  res: Response
+) => {
+  const admin = await deleteAdminService(
+    req.params.adminId
+  );
+
+  return res.status(200).json({
+    success: true,
+    message: "Admin deleted successfully",
+    admin,
+  });
+};
+
+export const setAdminAccountStatus = async (
+  req: Request,
+  res: Response
+) => {
+  const admin = await setAdminAccountStatusService(
+    req.params.adminId as string,
+    req.body.accountStatus
+  );
+
+  return res.status(200).json({
+    success: true,
+    message: `Admin account ${admin.accountStatus === "ACTIVE" ? "activated" : "deactivated"} successfully`,
     admin,
   });
 };

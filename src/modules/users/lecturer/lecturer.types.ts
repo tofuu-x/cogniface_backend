@@ -21,6 +21,7 @@ export interface LecturerPrivateResponse
   dateOfBirth: Date;
   accountStatus: AccountStatus;
   createdAt: Date;
+  updatedAt: Date;
 }
 
 

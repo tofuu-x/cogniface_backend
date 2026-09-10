@@ -412,3 +412,78 @@ export const updateAdminService = async (
 
   return updatedAdmin;
 };
+
+export const deleteAdminService = async (
+  adminId: string
+) => {
+  const admin = await prisma.admin.findUnique({
+    where: {
+      id: adminId,
+    },
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      role: true,
+    },
+  });
+
+  if (!admin) {
+    throw new AppError("Admin not found", 404);
+  }
+
+  await prisma.$transaction([
+    prisma.passwordToken.deleteMany({
+      where: {
+        userId: admin.id,
+        userType: "ADMIN",
+      },
+    }),
+    prisma.admin.delete({
+      where: {
+        id: admin.id,
+      },
+    }),
+  ]);
+
+  return admin;
+};
+
+export const setAdminAccountStatusService = async (
+  adminId: string,
+  accountStatus: unknown
+) => {
+  if (accountStatus !== "ACTIVE" && accountStatus !== "INACTIVE") {
+    throw new AppError("Account status must be ACTIVE or INACTIVE", 400);
+  }
+
+  const admin = await prisma.admin.findUnique({
+    where: {
+      id: adminId,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!admin) {
+    throw new AppError("Admin not found", 404);
+  }
+
+  return prisma.admin.update({
+    where: {
+      id: admin.id,
+    },
+    data: {
+      accountStatus,
+      authVersion: {
+        increment: 1,
+      },
+    },
+    select: {
+      id: true,
+      accountStatus: true,
+    },
+  });
+};
