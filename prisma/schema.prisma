@@ -172,8 +172,9 @@ model Lecturer {
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 
-  classes     Class[]
-  authVersion Int     @default(0)
+  classes       Class[]
+  announcements Announcement[]
+  authVersion   Int            @default(0)
 }
 
 //Major
@@ -252,6 +253,7 @@ model Class {
 
   enrollments        Enrollment[]
   attendanceSessions AttendanceSession[]
+  announcements      Announcement[]
 
   room        String
   maxCapacity Int
@@ -260,6 +262,23 @@ model Class {
   updatedAt DateTime @updatedAt
 
   @@unique([classCode, academicTermId])
+}
+
+model Announcement {
+  id    String @id @default(uuid())
+  title String
+  body  String
+
+  classId String
+  class   Class  @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  lecturerId String
+  lecturer   Lecturer @relation(fields: [lecturerId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([classId, createdAt])
 }
 
 model Enrollment {

@@ -1,0 +1,168 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="3840" height="1280" viewBox="0 0 3840 1280">
+  <defs>
+    <linearGradient id="stage" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fafdff"/><stop offset=".58" stop-color="#edf8ff"/><stop offset="1" stop-color="#d8f1ff"/>
+    </linearGradient>
+    <linearGradient id="left" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#061947"/><stop offset=".58" stop-color="#073b94"/><stop offset="1" stop-color="#0079db"/>
+    </linearGradient>
+    <linearGradient id="right" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#05245f"/><stop offset="1" stop-color="#0878d9"/>
+    </linearGradient>
+    <linearGradient id="cyan" x1="0" x2="1"><stop stop-color="#38d7ff"/><stop offset="1" stop-color="#1381f4"/></linearGradient>
+    <filter id="lift" x="-15%" y="-15%" width="130%" height="140%">
+      <feDropShadow dx="0" dy="14" stdDeviation="18" flood-color="#05245f" flood-opacity=".18"/>
+    </filter>
+    <filter id="soft" x="-15%" y="-15%" width="130%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="11" flood-color="#05245f" flood-opacity=".13"/>
+    </filter>
+    <style>
+      .font{font-family:Inter,Arial,sans-serif}.white{fill:#fff}.ink{fill:#09214e}.blue{fill:#0878e6}
+      .kicker{font:700 20px Inter,Arial,sans-serif;letter-spacing:5px}.title{font:800 50px Inter,Arial,sans-serif}
+      .section{font:800 30px Inter,Arial,sans-serif;letter-spacing:.5px}.body{font:400 22px Inter,Arial,sans-serif}.small{font:400 18px Inter,Arial,sans-serif}
+    </style>
+  </defs>
+
+  <rect width="3840" height="1280" fill="url(#stage)"/>
+  <circle cx="2410" cy="90" r="440" fill="none" stroke="#42caff" stroke-width="3" opacity=".15"/>
+  <circle cx="2410" cy="90" r="350" fill="none" stroke="#42caff" stroke-width="2" opacity=".12"/>
+
+  <!-- Left brand story -->
+  <path d="M0 0H640L590 1280H0Z" fill="url(#left)"/>
+  <g opacity=".13" stroke="#8be2ff" stroke-width="2">
+    <path d="M0 180L250 70L530 190L220 340L0 260ZM60 680L340 510L600 650L300 820L0 770ZM0 1040L240 900L570 1040L300 1230Z" fill="none"/>
+    <circle cx="250" cy="70" r="8" fill="#8be2ff"/><circle cx="530" cy="190" r="8" fill="#8be2ff"/><circle cx="340" cy="510" r="8" fill="#8be2ff"/><circle cx="300" cy="820" r="8" fill="#8be2ff"/>
+  </g>
+  <text x="58" y="100" class="font" font-size="86" font-weight="800" fill="#fff">Cogni<tspan fill="#53c6ff">face</tspan></text>
+  <text x="62" y="145" class="kicker" fill="#cceeff">SMART ATTENDANCE</text>
+  <text x="62" y="178" class="kicker" fill="#cceeff">BRIGHTER EDUCATION</text>
+  <rect x="62" y="215" width="120" height="7" rx="4" fill="#51d3ff"/>
+
+  <text x="62" y="282" class="font" font-size="25" font-weight="800" fill="#79dcff">THE IDEA</text>
+  <text x="62" y="328" class="body white"><tspan x="62">CogniFace connects secure facial</tspan><tspan x="62" dy="33">recognition with academic tools—</tspan><tspan x="62" dy="33">making attendance automatic,</tspan><tspan x="62" dy="33">contactless and accountable.</tspan></text>
+
+  <text x="62" y="515" class="font" font-size="25" font-weight="800" fill="#79dcff">WHAT IT SOLVES</text>
+  <g class="font" fill="#fff">
+    <g transform="translate(62,555)"><circle cx="19" cy="19" r="19" fill="#23c8ff"/><text x="19" y="27" text-anchor="middle" font-size="22" font-weight="800">1</text><text x="55" y="27" font-size="22">Automates attendance</text></g>
+    <g transform="translate(62,615)"><circle cx="19" cy="19" r="19" fill="#23c8ff"/><text x="19" y="27" text-anchor="middle" font-size="22" font-weight="800">2</text><text x="55" y="27" font-size="22">Stops proxy check-ins</text></g>
+    <g transform="translate(62,675)"><circle cx="19" cy="19" r="19" fill="#23c8ff"/><text x="19" y="27" text-anchor="middle" font-size="22" font-weight="800">3</text><text x="55" y="27" font-size="22">Delivers live insights</text></g>
+    <g transform="translate(62,735)"><circle cx="19" cy="19" r="19" fill="#23c8ff"/><text x="19" y="27" text-anchor="middle" font-size="22" font-weight="800">4</text><text x="55" y="27" font-size="22">Unifies academic tools</text></g>
+  </g>
+
+  <text x="62" y="865" class="font" font-size="25" font-weight="800" fill="#79dcff">BUILT FOR</text>
+  <g transform="translate(62,902)" class="font" text-anchor="middle">
+    <circle cx="67" cy="55" r="52" fill="#fff" opacity=".12"/><text x="67" y="65" font-size="44">🎓</text><text x="67" y="132" font-size="20" font-weight="700" fill="#fff">STUDENTS</text>
+    <circle cx="235" cy="55" r="52" fill="#fff" opacity=".12"/><text x="235" y="65" font-size="44">◉</text><text x="235" y="132" font-size="20" font-weight="700" fill="#fff">LECTURERS</text>
+    <circle cx="403" cy="55" r="52" fill="#fff" opacity=".12"/><text x="403" y="65" font-size="44">◆</text><text x="403" y="132" font-size="20" font-weight="700" fill="#fff">ADMINS</text>
+  </g>
+
+  <text x="62" y="1120" class="font" font-size="18" font-weight="700" fill="#9ee7ff">PROJECT TEAM</text>
+  <text x="62" y="1153" class="font" font-size="21" fill="#fff">Adarsha Giri  •  Aavash Poudel</text>
+  <text x="62" y="1185" class="font" font-size="19" fill="#d8efff">Victoria University | 2026</text>
+
+  <!-- Center narrative -->
+  <g transform="translate(690,54)">
+    <text class="kicker blue">HOW COGNIFACE WORKS</text>
+    <text y="70" class="title ink">From recognition to academic insight.</text>
+    <text y="112" class="body" fill="#4d6381">One connected system for attendance, learning and reporting.</text>
+  </g>
+
+  <!-- Benefits floating across the center header -->
+  <g class="font" transform="translate(1840,50)">
+    <g><circle cx="30" cy="30" r="30" fill="#daf9e7"/><text x="30" y="41" text-anchor="middle" font-size="30" fill="#0da95b">✓</text><text x="76" y="26" font-size="21" font-weight="800" fill="#09214e">ACCURATE</text><text x="76" y="51" font-size="17" fill="#536b89">Real-time records</text></g>
+    <g transform="translate(300,0)"><circle cx="30" cy="30" r="30" fill="#fff4cf"/><text x="30" y="41" text-anchor="middle" font-size="28" fill="#d89600">◉</text><text x="76" y="26" font-size="21" font-weight="800" fill="#09214e">EFFICIENT</text><text x="76" y="51" font-size="17" fill="#536b89">Less manual effort</text></g>
+    <g transform="translate(600,0)"><circle cx="30" cy="30" r="30" fill="#e1f2ff"/><text x="30" y="41" text-anchor="middle" font-size="29" fill="#0a7adf">◇</text><text x="76" y="26" font-size="21" font-weight="800" fill="#09214e">SECURE</text><text x="76" y="51" font-size="17" fill="#536b89">Privacy protected</text></g>
+  </g>
+
+  <!-- Oversized hero visual 01 -->
+  <g transform="translate(690,200)">
+    <text x="0" y="48" class="font" font-size="76" font-weight="900" fill="#0b7be8" opacity=".16">01</text>
+    <text x="108" y="28" class="section ink">SYSTEM ARCHITECTURE</text>
+    <text x="108" y="58" class="small" fill="#5b708e">A secure service boundary connects the app, backend, database and recognition service.</text>
+    <path d="M108 78H970" stroke="url(#cyan)" stroke-width="5"/>
+    <rect x="0" y="100" width="960" height="468" rx="20" fill="#fff" stroke="#9ed4ff" stroke-width="3" filter="url(#lift)"/>
+    <image href="assets/codex-clipboard-08d5b6a4-58ea-450c-ab64-44848fee617b.png" x="18" y="118" width="924" height="432" preserveAspectRatio="xMidYMid meet"/>
+  </g>
+
+  <!-- Oversized hero visual 02 -->
+  <g transform="translate(1695,247)">
+    <text x="0" y="48" class="font" font-size="76" font-weight="900" fill="#10b981" opacity=".18">02</text>
+    <text x="108" y="28" class="section ink">RECOGNITION IN ACTION</text>
+    <text x="108" y="58" class="small" fill="#5b708e">Live check-in gives lecturers immediate session feedback.</text>
+    <path d="M108 78H945" stroke="#19b87b" stroke-width="5"/>
+    <rect x="0" y="100" width="950" height="457" rx="20" fill="#fff" stroke="#9be2c7" stroke-width="3" filter="url(#lift)"/>
+    <image href="assets/codex-clipboard-f6c71991-8fe3-4fd4-829d-b1b575c18cc4.png" x="18" y="118" width="914" height="421" preserveAspectRatio="xMidYMid meet"/>
+  </g>
+
+  <!-- Product journey, each source isolated -->
+  <path d="M745 855C1160 775 2150 775 2640 855" fill="none" stroke="#79c9ff" stroke-width="4" stroke-dasharray="14 14" opacity=".65"/>
+  <text x="700" y="823" class="kicker blue">THE PRODUCT JOURNEY</text>
+
+  <g transform="translate(700,865)">
+    <circle cx="32" cy="30" r="27" fill="#0878e6"/><text x="32" y="40" class="font white" text-anchor="middle" font-size="25" font-weight="800">1</text>
+    <text x="74" y="38" class="font" font-size="23" font-weight="800" fill="#09214e">SIGN IN</text>
+    <rect y="74" width="390" height="220" rx="15" fill="#fff" stroke="#a9d7fa" stroke-width="3" filter="url(#soft)"/>
+    <image href="assets/codex-clipboard-2dafbd22-4605-421b-affa-698671c1dfe3.png" x="10" y="84" width="370" height="200" preserveAspectRatio="xMidYMid meet"/>
+  </g>
+  <g transform="translate(1130,865)">
+    <circle cx="32" cy="30" r="27" fill="#0878e6"/><text x="32" y="40" class="font white" text-anchor="middle" font-size="25" font-weight="800">2</text>
+    <text x="74" y="38" class="font" font-size="23" font-weight="800" fill="#09214e">LECTURER VIEW</text>
+    <rect y="74" width="530" height="220" rx="15" fill="#fff" stroke="#a9d7fa" stroke-width="3" filter="url(#soft)"/>
+    <image href="assets/codex-clipboard-34d9c015-df3e-48b6-9c63-9f5f6e5c5e6d.png" x="10" y="84" width="510" height="200" preserveAspectRatio="xMidYMid meet"/>
+  </g>
+  <g transform="translate(1700,865)">
+    <circle cx="32" cy="30" r="27" fill="#0878e6"/><text x="32" y="40" class="font white" text-anchor="middle" font-size="25" font-weight="800">3</text>
+    <text x="74" y="38" class="font" font-size="23" font-weight="800" fill="#09214e">STUDENT VIEW</text>
+    <rect y="74" width="530" height="220" rx="15" fill="#fff" stroke="#a9d7fa" stroke-width="3" filter="url(#soft)"/>
+    <image href="assets/codex-clipboard-6e91f359-e46b-47de-9b12-1cfd5e902620.png" x="10" y="84" width="510" height="200" preserveAspectRatio="xMidYMid meet"/>
+  </g>
+  <g transform="translate(2270,865)">
+    <circle cx="32" cy="30" r="27" fill="#0878e6"/><text x="32" y="40" class="font white" text-anchor="middle" font-size="25" font-weight="800">4</text>
+    <text x="74" y="38" class="font" font-size="23" font-weight="800" fill="#09214e">WORKFLOW</text>
+    <rect y="74" width="390" height="220" rx="15" fill="#fff" stroke="#a9d7fa" stroke-width="3" filter="url(#soft)"/>
+    <image href="assets/codex-clipboard-e0a866b4-5e58-494a-99ad-59da929398a1.png" x="10" y="84" width="370" height="200" preserveAspectRatio="xMidYMid meet"/>
+  </g>
+
+  <!-- Right impact zone -->
+  <path d="M2780 0H3840V1280H2715Q2805 1060 2755 840Q2700 570 2780 0Z" fill="url(#right)"/>
+  <g opacity=".14" stroke="#8de6ff" stroke-width="2" fill="none">
+    <circle cx="3650" cy="130" r="230"/><circle cx="3650" cy="130" r="170"/><path d="M3000 1050L3270 900L3550 1020L3810 820"/>
+  </g>
+  <g transform="translate(2870,92)">
+    <text class="kicker" fill="#78ddff">POWERED BY</text>
+    <text y="65" class="title white">Modern technology.</text>
+    <g class="font" font-size="20" font-weight="700" fill="#fff">
+      <g transform="translate(0,110)"><rect width="255" height="58" rx="29" fill="#fff" opacity=".12"/><text x="28" y="38">React + TypeScript</text></g>
+      <g transform="translate(275,110)"><rect width="150" height="58" rx="29" fill="#fff" opacity=".12"/><text x="37" y="38">Vite</text></g>
+      <g transform="translate(445,110)"><rect width="220" height="58" rx="29" fill="#fff" opacity=".12"/><text x="25" y="38">Tailwind CSS</text></g>
+      <g transform="translate(0,185)"><rect width="280" height="58" rx="29" fill="#fff" opacity=".12"/><text x="27" y="38">Node.js + Express.js</text></g>
+      <g transform="translate(300,185)"><rect width="245" height="58" rx="29" fill="#fff" opacity=".12"/><text x="27" y="38">Python + FastAPI</text></g>
+      <g transform="translate(565,185)"><rect width="210" height="58" rx="29" fill="#fff" opacity=".12"/><text x="28" y="38">PostgreSQL</text></g>
+      <g transform="translate(0,260)"><rect width="200" height="58" rx="29" fill="#fff" opacity=".12"/><text x="30" y="38">Prisma ORM</text></g>
+      <g transform="translate(220,260)"><rect width="455" height="58" rx="29" fill="#fff" opacity=".12"/><text x="28" y="38">OpenCV + DLIB (Face Recognition)</text></g>
+    </g>
+
+    <text y="438" class="kicker" fill="#78ddff">THE IMPACT</text>
+    <text y="500" class="title white">Less friction.</text>
+    <text y="552" class="title" fill="#65ddff">More confidence.</text>
+    <g class="font" transform="translate(0,600)">
+      <g><circle cx="34" cy="34" r="34" fill="#1dd58c"/><text x="34" y="47" text-anchor="middle" font-size="37" fill="#fff">✓</text><text x="92" y="28" font-size="23" font-weight="800" fill="#fff">REAL-TIME ATTENDANCE</text><text x="92" y="56" font-size="18" fill="#ccecff">Accurate, contactless and immediate</text></g>
+      <g transform="translate(0,100)"><circle cx="34" cy="34" r="34" fill="#29b6f6"/><text x="34" y="47" text-anchor="middle" font-size="32" fill="#fff">↗</text><text x="92" y="28" font-size="23" font-weight="800" fill="#fff">ACTIONABLE INSIGHTS</text><text x="92" y="56" font-size="18" fill="#ccecff">Records that support better decisions</text></g>
+      <g transform="translate(0,200)"><circle cx="34" cy="34" r="34" fill="#b991ff"/><text x="34" y="47" text-anchor="middle" font-size="34" fill="#fff">∞</text><text x="92" y="28" font-size="23" font-weight="800" fill="#fff">ONE CONNECTED PLATFORM</text><text x="92" y="56" font-size="18" fill="#ccecff">Attendance and education together</text></g>
+    </g>
+
+    <text y="945" class="kicker" fill="#78ddff">WHAT'S NEXT</text>
+    <path d="M20 1000H660" stroke="#57ceff" stroke-width="4"/>
+    <g class="font" fill="#fff" text-anchor="middle">
+      <circle cx="30" cy="1000" r="12" fill="#57ceff"/><text x="30" y="1044" font-size="17">Cloud</text>
+      <circle cx="180" cy="1000" r="12" fill="#57ceff"/><text x="180" y="1044" font-size="17">AI insights</text>
+      <circle cx="350" cy="1000" r="12" fill="#57ceff"/><text x="350" y="1044" font-size="17">MFA</text>
+      <circle cx="500" cy="1000" r="12" fill="#57ceff"/><text x="500" y="1044" font-size="17">Cache</text>
+      <circle cx="660" cy="1000" r="12" fill="#57ceff"/><text x="660" y="1044" font-size="17">Full LMS</text>
+    </g>
+    <text x="0" y="1130" class="font" font-size="23" font-style="italic" fill="#fff">“Technology today, a smarter education tomorrow.”</text>
+    <text x="0" y="1180" class="font" font-size="27" font-weight="800" fill="#fff">COGNIFACE</text>
+    <text x="715" y="1170" text-anchor="end" class="font" font-size="16" fill="#ccecff">SCAN TO LEARN MORE</text>
+    <image href="assets/cogniface-qr-original.png" x="740" y="1095" width="90" height="90" preserveAspectRatio="xMidYMid meet"/>
+  </g>
+</svg>

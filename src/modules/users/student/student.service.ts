@@ -569,19 +569,38 @@ export const deleteStudentService = async (
     throw new AppError("Student not found", 404);
   }
 
-  await prisma.$transaction([
-    prisma.passwordToken.deleteMany({
+  await prisma.$transaction(async (tx) => {
+    await tx.passwordToken.deleteMany({
       where: {
         userId: student.id,
         userType: "STUDENT",
       },
-    }),
-    prisma.student.delete({
+    });
+
+    await tx.attendanceRecord.deleteMany({
+      where: {
+        studentId: student.id,
+      },
+    });
+
+    await tx.enrollment.deleteMany({
+      where: {
+        studentId: student.id,
+      },
+    });
+
+    await tx.faceEmbedding.deleteMany({
+      where: {
+        studentId: student.id,
+      },
+    });
+
+    await tx.student.delete({
       where: {
         id: student.id,
       },
-    }),
-  ]);
+    });
+  });
 
   return student;
 };

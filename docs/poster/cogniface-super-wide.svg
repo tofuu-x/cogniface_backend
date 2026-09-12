@@ -1,0 +1,139 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="3840" height="1280" viewBox="0 0 3840 1280">
+  <defs>
+    <linearGradient id="header" x1="0" x2="1">
+      <stop offset="0" stop-color="#071d55"/>
+      <stop offset="0.55" stop-color="#0a46a8"/>
+      <stop offset="1" stop-color="#0788ee"/>
+    </linearGradient>
+    <linearGradient id="paper" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#eef8ff"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="7" stdDeviation="10" flood-color="#0b3c88" flood-opacity="0.13"/>
+    </filter>
+    <style>
+      .sans{font-family:Inter,Arial,sans-serif}.navy{fill:#071d55}.blue{fill:#0878e6}
+      .section{font:700 33px Inter,Arial,sans-serif;fill:#074ba9;letter-spacing:.5px}
+      .body{font:400 23px Inter,Arial,sans-serif;fill:#243957}.small{font:400 20px Inter,Arial,sans-serif;fill:#354c6b}
+      .label{font:700 24px Inter,Arial,sans-serif;fill:#071d55;letter-spacing:.4px}
+      .rule{stroke:#0a7de8;stroke-width:4}.divider{stroke:#9dcff7;stroke-width:2}
+    </style>
+  </defs>
+
+  <rect width="3840" height="1280" fill="url(#paper)"/>
+  <path d="M0 0H3840V154H0Z" fill="url(#header)"/>
+  <circle cx="3720" cy="70" r="190" fill="#36c2ff" opacity=".15"/>
+  <circle cx="90" cy="10" r="150" fill="#58d2ff" opacity=".12"/>
+
+  <!-- Header -->
+  <text x="66" y="86" class="sans" font-size="82" font-weight="800" fill="#fff">Cogni<tspan fill="#58c5ff">face</tspan></text>
+  <text x="70" y="126" class="sans" font-size="19" font-weight="600" letter-spacing="5" fill="#d5edff">SMART ATTENDANCE. BRIGHTER EDUCATION.</text>
+  <line x1="645" y1="30" x2="645" y2="126" stroke="#79c9ff" stroke-width="2" opacity=".7"/>
+  <text x="692" y="58" class="sans" font-size="25" font-weight="700" fill="#fff">ABOUT COGNIFACE</text>
+  <text x="692" y="91" class="sans" font-size="20" fill="#e9f6ff">An integrated education platform using facial recognition to automate attendance and help students,</text>
+  <text x="692" y="119" class="sans" font-size="20" fill="#e9f6ff">lecturers and administrators manage classes, learning resources and academic communication.</text>
+
+  <g transform="translate(2430,22)">
+    <g><circle cx="42" cy="42" r="32" fill="#dff8eb"/><text x="42" y="54" text-anchor="middle" font-size="34" fill="#0fa95a">✓</text><text x="88" y="36" class="sans" font-size="23" font-weight="700" fill="#fff">Accurate</text><text x="88" y="64" class="sans" font-size="17" fill="#d8ecff">Real-time records</text></g>
+    <g transform="translate(330,0)"><circle cx="42" cy="42" r="32" fill="#fff7d8"/><text x="42" y="54" text-anchor="middle" font-size="32" fill="#d59a00">◉</text><text x="88" y="36" class="sans" font-size="23" font-weight="700" fill="#fff">Efficient</text><text x="88" y="64" class="sans" font-size="17" fill="#d8ecff">Saves time</text></g>
+    <g transform="translate(630,0)"><circle cx="42" cy="42" r="32" fill="#e6f6ff"/><text x="42" y="54" text-anchor="middle" font-size="31" fill="#0878e6">◇</text><text x="88" y="36" class="sans" font-size="23" font-weight="700" fill="#fff">Secure</text><text x="88" y="64" class="sans" font-size="17" fill="#d8ecff">Privacy first</text></g>
+    <g transform="translate(930,0)"><circle cx="42" cy="42" r="32" fill="#e7faed"/><text x="42" y="54" text-anchor="middle" font-size="31" fill="#16a34a">◎</text><text x="88" y="36" class="sans" font-size="23" font-weight="700" fill="#fff">All-in-One</text><text x="88" y="64" class="sans" font-size="17" fill="#d8ecff">Attendance + education</text></g>
+  </g>
+
+  <!-- Main vertical dividers -->
+  <line x1="615" y1="185" x2="615" y2="1190" class="divider"/>
+  <line x1="1610" y1="185" x2="1610" y2="1190" class="divider"/>
+  <line x1="2535" y1="185" x2="2535" y2="1190" class="divider"/>
+
+  <!-- Zone 1: editorial text -->
+  <g transform="translate(62,205)">
+    <text class="section" y="0">INTRODUCTION</text><line x1="0" y1="14" x2="490" y2="14" class="rule"/>
+    <text class="body" y="58"><tspan x="0" dy="0">CogniFace is a smart attendance and</tspan><tspan x="0" dy="33">education system that uses facial</tspan><tspan x="0" dy="33">recognition to identify individuals and</tspan><tspan x="0" dy="33">mark attendance automatically.</tspan><tspan x="0" dy="33">It provides a secure platform for</tspan><tspan x="0" dy="33">students, lecturers and administrators.</tspan></text>
+
+    <text class="section" y="300">OBJECTIVES</text><line x1="0" y1="314" x2="490" y2="314" class="rule"/>
+    <g class="body" transform="translate(0,360)">
+      <text y="0">✓  Automate attendance using facial recognition</text>
+      <text y="42">✓  Prevent proxy / buddy punching</text>
+      <text y="84">✓  Integrate education management features</text>
+      <text y="126">✓  Provide real-time records and insights</text>
+      <text y="168">✓  Ensure data security and privacy</text>
+      <text y="210">✓  Easy to use and scalable</text>
+    </g>
+
+    <text class="section" y="650">SYSTEM OVERVIEW</text><line x1="0" y1="664" x2="490" y2="664" class="rule"/>
+    <text class="body" y="710"><tspan x="0">Combines facial recognition with education</tspan><tspan x="0" dy="33">management modules in one platform.</tspan></text>
+    <text class="small" y="803"><tspan x="0" font-weight="700">Users:</tspan><tspan> Student, Lecturer, Admin</tspan><tspan x="0" dy="32" font-weight="700">System:</tspan><tspan> Attendance, Classes, Learning</tspan><tspan x="0" dy="30">Resources, Communication, Reports &amp; Analytics</tspan><tspan x="0" dy="32" font-weight="700">Database:</tspan><tspan> Users, attendance, courses,</tspan><tspan x="0" dy="30">learning materials and system data</tspan></text>
+  </g>
+
+  <!-- Zone 2: two large, separate source assets -->
+  <g transform="translate(660,195)">
+    <text class="section" y="0">SYSTEM ARCHITECTURE</text><line x1="0" y1="14" x2="900" y2="14" class="rule"/>
+    <rect x="0" y="40" width="900" height="438" rx="12" fill="#fff" stroke="#b8dafa" stroke-width="2" filter="url(#shadow)"/>
+    <image href="assets/codex-clipboard-08d5b6a4-58ea-450c-ab64-44848fee617b.png" x="10" y="50" width="880" height="418" preserveAspectRatio="xMidYMid meet"/>
+
+    <text class="section" y="545">FACE RECOGNITION IN ACTION</text><line x1="0" y1="559" x2="900" y2="559" class="rule"/>
+    <rect x="0" y="585" width="900" height="432" rx="12" fill="#fff" stroke="#b8dafa" stroke-width="2" filter="url(#shadow)"/>
+    <image href="assets/codex-clipboard-f6c71991-8fe3-4fd4-829d-b1b575c18cc4.png" x="10" y="595" width="880" height="412" preserveAspectRatio="xMidYMid meet"/>
+  </g>
+
+  <!-- Zone 3: spacious product views -->
+  <g transform="translate(1655,195)">
+    <text class="section" y="0">PRODUCT EXPERIENCE</text><line x1="0" y1="14" x2="830" y2="14" class="rule"/>
+    <text class="label" y="55">LECTURER DASHBOARD</text>
+    <rect x="0" y="72" width="830" height="300" rx="12" fill="#fff" stroke="#b8dafa" stroke-width="2" filter="url(#shadow)"/>
+    <image href="assets/codex-clipboard-34d9c015-df3e-48b6-9c63-9f5f6e5c5e6d.png" x="12" y="84" width="806" height="276" preserveAspectRatio="xMidYMid meet"/>
+
+    <text class="label" y="425">STUDENT DASHBOARD</text>
+    <rect x="0" y="442" width="830" height="300" rx="12" fill="#fff" stroke="#b8dafa" stroke-width="2" filter="url(#shadow)"/>
+    <image href="assets/codex-clipboard-6e91f359-e46b-47de-9b12-1cfd5e902620.png" x="12" y="454" width="806" height="276" preserveAspectRatio="xMidYMid meet"/>
+
+    <text class="label" y="805">LOGIN PAGE</text><text class="label" x="455" y="805">WORKFLOW</text>
+    <rect x="0" y="823" width="375" height="172" rx="10" fill="#fff" stroke="#b8dafa" stroke-width="2"/>
+    <image href="assets/codex-clipboard-2dafbd22-4605-421b-affa-698671c1dfe3.png" x="7" y="830" width="361" height="158" preserveAspectRatio="xMidYMid meet"/>
+    <rect x="455" y="823" width="375" height="172" rx="10" fill="#fff" stroke="#b8dafa" stroke-width="2"/>
+    <image href="assets/codex-clipboard-e0a866b4-5e58-494a-99ad-59da929398a1.png" x="462" y="830" width="361" height="158" preserveAspectRatio="xMidYMid meet"/>
+  </g>
+
+  <!-- Zone 4: outcomes -->
+  <g transform="translate(2585,205)">
+    <text class="section" y="0">TECHNOLOGIES USED</text><line x1="0" y1="14" x2="1165" y2="14" class="rule"/>
+    <g class="body" transform="translate(0,60)">
+      <text y="0">⚛  React + TypeScript</text><text x="400" y="0">◆  Vite</text><text x="650" y="0">≈  Tailwind CSS</text>
+      <text y="44">⬡  Node.js + Express.js</text><text x="400" y="44">●  Python + FastAPI</text><text x="760" y="44">♜  PostgreSQL</text>
+      <text y="88">△  Prisma ORM</text><text x="400" y="88">◎  OpenCV + DLIB (Face Recognition)</text>
+    </g>
+
+    <text class="section" y="225">RESULTS / OUTCOMES</text><line x1="0" y1="239" x2="1165" y2="239" class="rule"/>
+    <g class="body" transform="translate(0,286)">
+      <text y="0">✓  Accurate and real-time attendance</text><text x="610" y="0">✓  Prevents proxy attendance</text>
+      <text y="44">✓  Saves time and manual effort</text><text x="610" y="44">✓  Integrated education management</text>
+      <text y="88">✓  Secure and contactless solution</text><text x="610" y="88">✓  Easy to use and scalable</text>
+    </g>
+
+    <text class="section" y="455">FUTURE IMPROVEMENTS</text><line x1="0" y1="469" x2="1165" y2="469" class="rule"/>
+    <g class="body" transform="translate(0,518)">
+      <text y="0">•  Cloud storage &amp; backup</text><text x="610" y="0">•  Advanced analytics &amp; AI insights</text>
+      <text y="44">•  Multi-factor authentication</text><text x="610" y="44">•  Add cache</text>
+      <text y="88">•  Full learning management system</text>
+    </g>
+
+    <rect x="0" y="685" width="1165" height="330" rx="18" fill="#e5f4ff" stroke="#77bdf2" stroke-width="2"/>
+    <text x="48" y="744" class="sans" font-size="31" font-weight="700" fill="#074ba9">WHY COGNIFACE?</text>
+    <text x="48" y="805" class="sans" font-size="27" fill="#243957">Accurate attendance</text>
+    <text x="48" y="855" class="sans" font-size="27" fill="#243957">Contactless recognition</text>
+    <text x="48" y="905" class="sans" font-size="27" fill="#243957">Integrated academic management</text>
+    <text x="620" y="805" class="sans" font-size="27" fill="#243957">Secure by design</text>
+    <text x="620" y="855" class="sans" font-size="27" fill="#243957">Real-time insights</text>
+    <text x="620" y="905" class="sans" font-size="27" fill="#243957">Easy to use and scalable</text>
+  </g>
+
+  <!-- Footer -->
+  <rect y="1205" width="3840" height="75" fill="#071d55"/>
+  <text x="62" y="1236" class="sans" font-size="18" font-weight="700" fill="#fff">PROJECT TEAM</text>
+  <text x="62" y="1263" class="sans" font-size="18" fill="#d9edff">Adarsha Giri  •  Aavash Poudel  •  Victoria University | 2026</text>
+  <text x="1920" y="1252" text-anchor="middle" class="sans" font-size="28" font-style="italic" fill="#fff">“Technology today, a smarter education tomorrow.”</text>
+  <text x="3320" y="1253" class="sans" font-size="28" font-weight="800" fill="#fff">COGNIFACE</text>
+  <text x="3638" y="1243" text-anchor="end" class="sans" font-size="16" fill="#d9edff">Scan to Learn More</text>
+  <image href="assets/cogniface-qr-original.png" x="3673" y="1209" width="66" height="66" preserveAspectRatio="xMidYMid meet"/>
+</svg>
