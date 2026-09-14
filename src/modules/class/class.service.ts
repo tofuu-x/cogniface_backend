@@ -1224,6 +1224,13 @@ export const deleteClassService =
               year: true,
             },
           },
+
+          _count: {
+            select: {
+              enrollments: true,
+              attendanceSessions: true,
+            },
+          },
         },
       });
 
@@ -1234,13 +1241,38 @@ export const deleteClassService =
       );
     }
 
+    if (classRecord._count.enrollments > 0) {
+      throw new AppError(
+        "Cannot delete this class because it has student enrollment records",
+        409,
+        {
+          enrollmentCount:
+            classRecord._count.enrollments,
+        }
+      );
+    }
+
+    if (classRecord._count.attendanceSessions > 0) {
+      throw new AppError(
+        "Cannot delete this class because it has attendance session records",
+        409,
+        {
+          attendanceSessionCount:
+            classRecord._count.attendanceSessions,
+        }
+      );
+    }
+
     await prisma.class.delete({
       where: {
         id,
       },
     });
 
-    return classRecord;
+    const { _count, ...deletedClass } =
+      classRecord;
+
+    return deletedClass;
   };
 
   //get students in  a class

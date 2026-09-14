@@ -380,11 +380,38 @@ export const deleteLecturerService = async (
       lecturerId: true,
       firstName: true,
       lastName: true,
+      _count: {
+        select: {
+          classes: true,
+          announcements: true,
+        },
+      },
     },
   });
 
   if (!lecturer) {
     throw new AppError("Lecturer not found", 404);
+  }
+
+  if (lecturer._count.classes > 0) {
+    throw new AppError(
+      "Cannot delete this lecturer because classes are assigned to them",
+      409,
+      {
+        classCount: lecturer._count.classes,
+      }
+    );
+  }
+
+  if (lecturer._count.announcements > 0) {
+    throw new AppError(
+      "Cannot delete this lecturer because announcements are associated with them",
+      409,
+      {
+        announcementCount:
+          lecturer._count.announcements,
+      }
+    );
   }
 
   await prisma.$transaction([
@@ -401,7 +428,9 @@ export const deleteLecturerService = async (
     }),
   ]);
 
-  return lecturer;
+  const { _count, ...deletedLecturer } = lecturer;
+
+  return deletedLecturer;
 };
 
 export const setLecturerAccountStatusService = async (

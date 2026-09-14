@@ -481,12 +481,29 @@ export const deleteCourseService = async (
     where: {
       courseCode: normalizedCourseCode,
     },
+    include: {
+      _count: {
+        select: {
+          classes: true,
+        },
+      },
+    },
   });
 
   if (!course) {
     throw new AppError(
       "Course not found",
       404
+    );
+  }
+
+  if (course._count.classes > 0) {
+    throw new AppError(
+      "Cannot delete this course because classes are associated with it. Archive the course instead",
+      409,
+      {
+        classCount: course._count.classes,
+      }
     );
   }
 
